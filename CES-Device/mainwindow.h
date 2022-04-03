@@ -17,5 +17,9 @@ public:
 
 private:
     Ui::MainWindow *ui;
+    Session *savedSessions[10];
+    Session *curSession;
+
+
 };
 #endif // MAINWINDOW_H
