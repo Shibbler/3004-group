@@ -24,6 +24,7 @@ private:
     Ui::MainWindow *ui;
     Session *savedSessions[10];
     Session *curSession;
+    float connectionStrength; //one of three possible values (0.33,0.66,1) based on the colour groupings
     float batteryLevel;
     int numSessions;
     bool inSession;

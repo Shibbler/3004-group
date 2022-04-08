@@ -21,12 +21,18 @@ Session::Session(const Session *sesh)
     setRecord();
 }
 
-int Session::getIntensity()
+float Session::getIntensity()
 {
     return intensity;
 }
 
-int Session::setIntensity(int i)
+int Session::getLength()
+{
+    return sessionLength;
+}
+
+
+float Session::setIntensity(float i)
 {
     intensity = i;
     setRecord();
@@ -41,6 +47,7 @@ int Session::setSG(int sg)
 {
     sessionGroup = sg;
     setRecord();
+    return sg;
 }
 
 int Session::getST()
@@ -52,6 +59,7 @@ int Session::setST(int st)
 {
     sessionType = st;
     setRecord();
+    return st;
 }
 
 char* Session::getRecord()
@@ -61,7 +69,7 @@ char* Session::getRecord()
 
 void Session::setRecord()
 {
-    sprintf(sessionRecord, ":%d:%d:%d:%d:", id, sessionGroup, sessionType, intensity);
+    sprintf(sessionRecord, ":%d:%d:%d:%f:", id, sessionGroup, sessionType, intensity);//may need to change cuz I made it a float
 }
 
 Session::~Session()

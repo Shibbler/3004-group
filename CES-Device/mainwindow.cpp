@@ -23,7 +23,7 @@ MainWindow::MainWindow(QWidget *parent)
     //set batteryPower to 100
     this->batteryLevel = 100.0;
     //set in session bool to false
-    this->inSession = true;
+    this->inSession = true; //ITS TRUE SO YOU CAN SEE THE SOFT POWER THING
     //this->softOffRow = 8;
 
     //TESTING
@@ -43,7 +43,9 @@ MainWindow::MainWindow(QWidget *parent)
 
 //function to be called for battery drainage (should be timed)
 void MainWindow::drainBattery(){
-
+    //battery drains: Hz/100 *connection (3 possible values (0.33, 0.66,1)) * lengthOfSession/60
+    float amountToReduceBattery((curSession->getIntensity()/100) *this->connectionStrength * (this->curSession->getLength()/60));
+    this->batteryLevel -= amountToReduceBattery;
 }
 
 //call the softoffbased on button press

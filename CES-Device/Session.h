@@ -21,17 +21,20 @@ public:
     ~Session();
     char* getRecord();
     int id;
-    int getIntensity();
+    float getIntensity();
     int getSG();
     int getST();
-    int setIntensity(int);
+    int getLength();
+    float setIntensity(float);
     int setSG(int);
     int setST(int);
+    //float hertz;//necessary for us to model depletion, but we could put it as part of a session group or something NVM IM DUMB
 
 private:
-    int intensity;
+    float intensity;
     int sessionType;
     int sessionGroup;
+    int sessionLength;
     char* sessionRecord;
     void setRecord();
 };
