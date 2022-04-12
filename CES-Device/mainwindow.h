@@ -39,6 +39,7 @@ public slots:
     void startButton();
     void earlobeWeakButton();
     void earlobeStrongButton();
+    void earlobeDetachButton();
 
 signals:
 

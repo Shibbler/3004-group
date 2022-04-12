@@ -14,11 +14,13 @@ MainWindow::MainWindow(QWidget *parent)
 
     connect(ui->PowerButton, SIGNAL (released()) , this, SLOT (softOffFromButton()));
 
-    connect(ui->StartButton, SIGNAL (pressed()) , this, SLOT (startButton();));
+    connect(ui->StartButton, SIGNAL (released()) , this, SLOT (startButton()));
 
-    connect(ui->earButtonStrong, SIGNAL (pressed()) , this, SLOT (earlobeStrongButton();));
+    connect(ui->earButtonStrong, SIGNAL (released()) , this, SLOT (earlobeStrongButton()));
 
-    connect(ui->earButtonWeak, SIGNAL (pressed()) , this, SLOT (earlobeWeakButton();));
+    connect(ui->earButtonWeak, SIGNAL (released()) , this, SLOT (earlobeWeakButton()));
+
+    connect(ui->detachEars, SIGNAL (released()) , this, SLOT (earlobeDetachButton()));
 
     this->batteryTimer = new QTimer(this);
     this->softOffTimer = new QTimer(this);
@@ -29,7 +31,7 @@ MainWindow::MainWindow(QWidget *parent)
     //set batteryPower to 100
     this->batteryLevel = 100.0;
     //set in session bool to false
-    this->inSession = true; //ITS TRUE SO YOU CAN SEE THE SOFT POWER THING, OTHERWISE SHOULD BE FALSE
+    this->inSession = false;
     //this->softOffRow = 8;
     //start the timer to model battery depletion (always runs)
     batteryTimer->start(1000);
@@ -53,11 +55,41 @@ MainWindow::MainWindow(QWidget *parent)
 }
 
 
-void MainWindow::startButton(){}
+void MainWindow::startButton(){
+    this->inSession = true;
+}
 
-void MainWindow::earlobeStrongButton(){}
+void MainWindow::earlobeStrongButton(){
+    this->connectionStrength = 1;
+    for (int i = 0; i< 8; i++){
+        ui->SessionType_2->setCurrentRow(i, QItemSelectionModel::Deselect);
+    }
+    ui->SessionType_2->setCurrentRow(0, QItemSelectionModel::Select);
+    ui->SessionType_2->setCurrentRow(1, QItemSelectionModel::Select);
+    ui->SessionType_2->setCurrentRow(2, QItemSelectionModel::Select);
+    qDebug() << "StrongConnection Pressed";
 
-void MainWindow::earlobeWeakButton(){}
+}
+
+void MainWindow::earlobeWeakButton(){
+    this->connectionStrength = 0.66;
+    for (int i = 0; i< 8; i++){
+        ui->SessionType_2->setCurrentRow(i, QItemSelectionModel::Deselect);
+    }
+    ui->SessionType_2->setCurrentRow(3, QItemSelectionModel::Select);
+    ui->SessionType_2->setCurrentRow(4, QItemSelectionModel::Select);
+    ui->SessionType_2->setCurrentRow(5, QItemSelectionModel::Select);
+}
+
+void MainWindow::earlobeDetachButton(){
+    this->connectionStrength = 0.33;
+    for (int i = 0; i< 8; i++){
+        ui->SessionType_2->setCurrentRow(i, QItemSelectionModel::Deselect);
+    }
+
+    ui->SessionType_2->setCurrentRow(6, QItemSelectionModel::Select);
+    ui->SessionType_2->setCurrentRow(7, QItemSelectionModel::Select);
+}
 
 
 
