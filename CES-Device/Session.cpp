@@ -1,12 +1,13 @@
 #include "Session.h"
 #include <stdio.h>
 #include "mainwindow.h"
-Session::Session(int identifier, int sg, int st, float i)
+Session::Session(int identifier, int sg, int st, float i,float l)
 {
      id = identifier;
      sessionGroup = sg;
      sessionType = st;
      intensity = i;
+     sessionLength =  l;
      sessionRecord = (char*) malloc(20);
      setRecord();
 }
@@ -26,7 +27,7 @@ float Session::getIntensity()
     return intensity;
 }
 
-int Session::getLength()
+float Session::getLength()
 {
     return sessionLength;
 }

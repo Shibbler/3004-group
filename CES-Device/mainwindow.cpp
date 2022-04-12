@@ -38,7 +38,7 @@ MainWindow::MainWindow(QWidget *parent)
 
 
     //TESTING
-    Session *test = new Session(0,60,30,30);
+    Session *test = new Session(0,60,30,30,20);
     this->connectionStrength = 1; //to model full connection
     Session *toCopy = new Session(test);
     this->curSession = test;
@@ -98,12 +98,21 @@ void MainWindow::earlobeDetachButton(){
 void MainWindow::drainBattery(){
     //battery drains: Hz/100 *connection (3 possible values (0.33, 0.66,1)) * lengthOfSession/60
 
-    float amountToReduceBattery((curSession->getIntensity()/100) * this->connectionStrength * (this->curSession->getLength()/60));
 
-    qDebug() << amountToReduceBattery;
+    qDebug() << "Session intensity: " << curSession->getIntensity() << ". Connection strength: " << this->connectionStrength << ". Length of Session: " << this->curSession->getLength();
+    qDebug() << "First piece of math /100 = " << (curSession->getIntensity()/100) << ". Second piece of math /60: " <<(this->curSession->getLength()/60);
+
+    float amountToReduceBattery= ((curSession->getIntensity()/100) * this->connectionStrength * (this->curSession->getLength()/60));
+
+    //qDebug() << amountToReduceBattery;
     if (inSession && powerStatus){//if we are in a session AND the power is on
         this->batteryLevel -= amountToReduceBattery;
         ui->batteryLabel_2->setText(QString::number(this->batteryLevel));
+        if (this->batteryLevel <= 0){//if battery is reduced such that there is no more charge
+            this->powerStatus = false;
+            ui->powerLabel->setText("POWER: OFF");
+            ui->batteryLabel_2->setText("0");
+        }
     }
 }
 
