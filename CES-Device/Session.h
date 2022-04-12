@@ -16,7 +16,7 @@ class Session
 {
 
 public:
-    Session(int, int, int, int);
+    Session(int, int, int, float);
     Session(const Session *sesh);            //copy constructor for saving a session
     ~Session();
     char* getRecord();
@@ -28,7 +28,7 @@ public:
     float setIntensity(float);
     int setSG(int);
     int setST(int);
-    //float hertz;//necessary for us to model depletion, but we could put it as part of a session group or something NVM IM DUMB
+    //float hertz;//necessary for us to model depletion, but we could put it as part of a session group or something NVM IM DUMB ITS IN INTENSITY
 
 private:
     float intensity;

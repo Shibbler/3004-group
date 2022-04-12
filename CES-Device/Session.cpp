@@ -1,7 +1,7 @@
 #include "Session.h"
 #include <stdio.h>
 #include "mainwindow.h"
-Session::Session(int identifier, int sg, int st, int i)
+Session::Session(int identifier, int sg, int st, float i)
 {
      id = identifier;
      sessionGroup = sg;
@@ -36,6 +36,7 @@ float Session::setIntensity(float i)
 {
     intensity = i;
     setRecord();
+    return intensity;
 }
 
 int Session::getSG()

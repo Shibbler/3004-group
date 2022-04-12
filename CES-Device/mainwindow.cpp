@@ -14,6 +14,12 @@ MainWindow::MainWindow(QWidget *parent)
 
     connect(ui->PowerButton, SIGNAL (released()) , this, SLOT (softOffFromButton()));
 
+    connect(ui->StartButton, SIGNAL (pressed()) , this, SLOT (startButton();));
+
+    connect(ui->earButtonStrong, SIGNAL (pressed()) , this, SLOT (earlobeStrongButton();));
+
+    connect(ui->earButtonWeak, SIGNAL (pressed()) , this, SLOT (earlobeWeakButton();));
+
     this->batteryTimer = new QTimer(this);
     this->softOffTimer = new QTimer(this);
     connect(batteryTimer, SIGNAL (timeout()),this, SLOT (drainBattery()));
@@ -23,13 +29,18 @@ MainWindow::MainWindow(QWidget *parent)
     //set batteryPower to 100
     this->batteryLevel = 100.0;
     //set in session bool to false
-    this->inSession = true; //ITS TRUE SO YOU CAN SEE THE SOFT POWER THING
+    this->inSession = true; //ITS TRUE SO YOU CAN SEE THE SOFT POWER THING, OTHERWISE SHOULD BE FALSE
     //this->softOffRow = 8;
+    //start the timer to model battery depletion (always runs)
+    batteryTimer->start(1000);
+
 
     //TESTING
-    Session *test = new Session(0,TWENTY_MIN,DELTA,1);
-
+    Session *test = new Session(0,60,30,30);
+    this->connectionStrength = 1; //to model full connection
     Session *toCopy = new Session(test);
+    this->curSession = test;
+
 
     qInfo("%s", test->getRecord());
     qInfo("%s", toCopy->getRecord());
@@ -41,11 +52,27 @@ MainWindow::MainWindow(QWidget *parent)
 
 }
 
+
+void MainWindow::startButton(){}
+
+void MainWindow::earlobeStrongButton(){}
+
+void MainWindow::earlobeWeakButton(){}
+
+
+
+
 //function to be called for battery drainage (should be timed)
 void MainWindow::drainBattery(){
     //battery drains: Hz/100 *connection (3 possible values (0.33, 0.66,1)) * lengthOfSession/60
-    float amountToReduceBattery((curSession->getIntensity()/100) *this->connectionStrength * (this->curSession->getLength()/60));
-    this->batteryLevel -= amountToReduceBattery;
+
+    float amountToReduceBattery((curSession->getIntensity()/100) * this->connectionStrength * (this->curSession->getLength()/60));
+
+    qDebug() << amountToReduceBattery;
+    if (inSession && powerStatus){//if we are in a session AND the power is on
+        this->batteryLevel -= amountToReduceBattery;
+        ui->batteryLabel_2->setText(QString::number(this->batteryLevel));
+    }
 }
 
 //call the softoffbased on button press
@@ -70,7 +97,7 @@ void MainWindow::softOffTimed(){
        ui->SessionType_2->setCurrentRow(this->softOffRow,QItemSelectionModel::Deselect);
        this->softOffRow++;
        ui->SessionType_2->setCurrentRow(this->softOffRow, QItemSelectionModel::Select);
-       qDebug() << "The row is: " << this->softOffRow;
+       //qDebug() << "The row is: " << this->softOffRow;
     }else{
         this->softOffTimer->stop();
     }

@@ -36,6 +36,10 @@ public slots:
     void drainBattery();
     void softOffFromButton();
     void softOffTimed();
+    void startButton();
+    void earlobeWeakButton();
+    void earlobeStrongButton();
+
 signals:
 
 
