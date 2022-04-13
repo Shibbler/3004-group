@@ -47,6 +47,8 @@ private:
     void loadSessions();
     void saveSessions();
     void initSlots();
+    char* path;
+
 
     quint64 mLastPressTime=0;
     static const quint64 MY_LONG_PRESS_THRESHOLD=1000;

@@ -16,8 +16,14 @@ MainWindow::MainWindow(QWidget *parent)
 {
     ui->setupUi(this);
 
+    path = (char*) malloc(200);
+    getcwd(path, 200);
+    strcat(path, "/database.txt");
+    qInfo("path is: %s\n", path);
+
     //read saved sessions from DB textfile and store them in the array of sessions
     loadSessions();
+
 
     this->incTimer = new QTimer(this);
     this->batteryTimer = new QTimer(this);
@@ -37,14 +43,14 @@ MainWindow::MainWindow(QWidget *parent)
     initSlots();
 
     //TESTING
-    curSession = new Session(0,20,30,0.0, 1.0);
+    curSession = new Session(0,20.0,30,0.0, 1.0);
     this->connectionStrength = 1; //to model full connection
 
     Session *toCopy = new Session(curSession);
 
     qInfo("%s", curSession->getRecord());
     qInfo("%s", toCopy->getRecord());
-    qInfo("%s", savedSessions[0]->getRecord());
+  //  qInfo("%s", savedSessions[0]->getRecord());
     //TESTING
 }
 
@@ -226,8 +232,13 @@ void MainWindow::power_released(){
                 this->sessionGroupRow= this->sessionGroupRow % 3;
                 ui->SessionGroup->setCurrentRow(this->sessionGroupRow,QItemSelectionModel::Deselect);
                 this->sessionGroupRow++;
+<<<<<<< Updated upstream
                 this->sessionGroupRow= this->sessionGroupRow % 3;
                 ui->SessionGroup->setCurrentRow(this->sessionGroupRow,QItemSelectionModel::Select);
+=======
+                ui->SessionGroup->setCurrentRow(this->sessionGroupRow % 3,QItemSelectionModel::Select);
+
+>>>>>>> Stashed changes
                 switch(this->sessionGroupRow){
                     case 0: this->curSession->setSG(TWENTY_MIN);
                     break;
@@ -309,45 +320,62 @@ void MainWindow::downButtonPressed(){
 void MainWindow::loadSessions()
 {
 
-// LUCAS: "/home/student/3004-group/CES-Device/database.txt"
     //open the db file for reading
+    qInfo("trying to open file\n");
     FILE *file;
-    file = fopen("/home/student/3004-group/CES-Device/database.txt", "r");
+    file = fopen(path, "r");
+    qInfo("file path opened for read?\n");
 
-    if (file == NULL)
+    if (file == NULL) //file does not exist yet. setup fresh db file for new project
     {
-       qInfo("error reading the db file. exiting\n");
-       exit(1);
-    }
+        qInfo("file does not exist yet.\n");
+        file = fopen(path, "w");  //reopen the file as write only, since file does not exist, this creates it
+        if (file == NULL)
+            qInfo("oh no\n");
 
-    for (int i = 0; i < MAX_SESSIONS; i++)
-    {
-        char* temp = (char*) malloc(200);
-
-        if (fgets(temp, 200, file) != NULL)
+        qInfo("file opened for writing?\n");
+        for (int i = 0; i < MAX_SESSIONS; i++)
         {
-            int id, st;
-            float Hertz, sg, intensity;
-
-            sscanf(temp, "%d %f %d %f %f", &id, &sg, &st, &Hertz, &intensity);
-
-            savedSessions[i] = new Session(id, sg, st, Hertz, intensity);
-            delete temp;
-            continue;
+            savedSessions[i] = new Session(i+1, TWENTY_MIN, DELTA, DELTA_HZ, 1.0); //fill up saved sessions array with default values
+            fputs(savedSessions[i]->getRecord(), file);                                  //write the session to the DB file
+            fputs("\n", file);
         }
-
-        delete temp;
-        break;
+        fclose(file);
     }
+    else
+    {
+        for (int i = 0; i < MAX_SESSIONS; i++)
+        {
+            char* temp = (char*) malloc(200);
 
-    fclose(file);
+            if (fgets(temp, 200, file) != NULL)
+            {
+                int id, st;
+                float Hertz, sg, intensity;
+
+                sscanf(temp, "%d %f %d %f %f", &id, &sg, &st, &Hertz, &intensity);
+
+                savedSessions[i] = new Session(id, sg, st, Hertz, intensity);
+                delete temp;
+                continue;
+            }
+
+            delete temp;
+            break;
+        }
+        fclose(file);
+    }
 }
 
 void MainWindow::saveSessions()
 {
     // LUCAS: "/home/student/3004-group/CES-Device/database.txt"
     FILE *file;
+<<<<<<< Updated upstream
     file = fopen("/home/student/3004-group/CES-Device/database.txt", "w");
+=======
+    file = fopen(path, "w");
+>>>>>>> Stashed changes
 
     //clear contents of db file
 
@@ -403,6 +431,8 @@ MainWindow::~MainWindow()
     }
 
     delete curSession;
+
+    delete path;
 
     delete ui;
 }
