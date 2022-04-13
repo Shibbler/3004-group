@@ -42,6 +42,7 @@ private:
     int sessionGroupRow = 0;
     bool powerStatus;
     float curCustomTime = 0;
+    int sessionTypeRow = 1;
     void loadSessions();
     void saveSessions();
 
@@ -62,6 +63,9 @@ public slots:
     void saveSession();
     void increaseTime();
     void updateCustomTime();
+
+    void upButtonPressed();
+    void downButtonPressed();
 
     void power_pressed();
     void power_released();

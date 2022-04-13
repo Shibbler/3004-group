@@ -35,8 +35,8 @@ MainWindow::MainWindow(QWidget *parent)
 
     connect(ui->UserDesSlider, SIGNAL (sliderReleased()) , this, SLOT (updateCustomTime()));
 
-
-
+    connect(ui->downButton, SIGNAL (released()) , this, SLOT (downButtonPressed()));
+    connect(ui->upButton, SIGNAL (released()) , this, SLOT (upButtonPressed()));
 
     this->incTimer = new QTimer(this);
     this->batteryTimer = new QTimer(this);
@@ -201,7 +201,6 @@ void MainWindow::earlobeDetachButton(){
     }
 }
 
-
 void MainWindow::updateCustomTime(){
     this->curCustomTime = ui->UserDesSlider->sliderPosition();
     ui->timeLabel->setText(QString::number(this->curCustomTime));
@@ -302,6 +301,41 @@ void MainWindow::power_released(){
                     case 2: this->curSession->setSG(curCustomTime);
                 }
             }
+        }
+    }
+}
+
+
+void MainWindow::upButtonPressed(){
+    if (sessionTypeRow > 0){
+        ui->SessionType->setCurrentRow(sessionTypeRow,QItemSelectionModel::Deselect);
+        sessionTypeRow--;
+        ui->SessionType->setCurrentRow(sessionTypeRow,QItemSelectionModel::Select);
+        switch(this->sessionTypeRow){
+            case 0: this->curSession->setSG(DELTA);
+            break;
+            case 1: this->curSession->setSG(THETA);
+            break;
+            case 2: this->curSession->setSG(ALPHA);
+            break;
+            case 3: this->curSession->setSG(ONE_HUNDRED);
+        }
+    }
+}
+
+void MainWindow::downButtonPressed(){
+    if (sessionTypeRow < 3){
+        ui->SessionType->setCurrentRow(sessionTypeRow,QItemSelectionModel::Deselect);
+        sessionTypeRow++;
+        ui->SessionType->setCurrentRow(sessionTypeRow,QItemSelectionModel::Select);
+        switch(this->sessionTypeRow){
+            case 0: this->curSession->setSG(DELTA);
+            break;
+            case 1: this->curSession->setSG(THETA);
+            break;
+            case 2: this->curSession->setSG(ALPHA);
+            break;
+            case 3: this->curSession->setSG(ONE_HUNDRED);
         }
     }
 }
