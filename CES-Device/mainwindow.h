@@ -61,6 +61,7 @@ public slots:
     void loadSession();
     void saveSession();
     void increaseTime();
+    void updateCustomTime();
 
     void power_pressed();
     void power_released();

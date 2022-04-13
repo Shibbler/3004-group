@@ -6,6 +6,7 @@
 
 #include <QDateTime>
 #include <stdio.h>
+#include <QSlider>
 
 
 MainWindow::MainWindow(QWidget *parent)
@@ -32,7 +33,7 @@ MainWindow::MainWindow(QWidget *parent)
 
     connect(ui->detachEars, SIGNAL (released()) , this, SLOT (earlobeDetachButton()));
 
-    connect(ui->detachEars, SIGNAL (released()) , this, SLOT (earlobeDetachButton()));
+    connect(ui->UserDesSlider, SIGNAL (sliderReleased()) , this, SLOT (updateCustomTime()));
 
 
 
@@ -77,7 +78,12 @@ MainWindow::MainWindow(QWidget *parent)
 
 //SHOULD TURN OFF IN TWO MINS IF NO SESSION SELECTED
 
-//works by loading the ith session of savedSessions, where i current index of the QComboBox (like a list, so session 1 =0
+
+
+
+
+
+
 
 void MainWindow::loadSessions()
 {
@@ -123,7 +129,7 @@ void MainWindow::saveSessions()
         //write the session from array to file
     }
 }
-
+//works by loading the ith session of savedSessions, where i current index of the QComboBox (like a list, so session 1 =0
 void MainWindow::loadSession(){
     if (this->powerStatus){
         this->curSession = this->savedSessions[ui->sessionStore->currentIndex()];//might want to use model column
@@ -195,6 +201,12 @@ void MainWindow::earlobeDetachButton(){
     }
 }
 
+
+void MainWindow::updateCustomTime(){
+    this->curCustomTime = ui->UserDesSlider->sliderPosition();
+    ui->timeLabel->setText(QString::number(this->curCustomTime));
+    qDebug() << this->curCustomTime;
+}
 
 //function to be called for battery drainage (should be timed)
 void MainWindow::drainBattery(){
