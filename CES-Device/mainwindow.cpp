@@ -232,20 +232,8 @@ void MainWindow::power_released(){
                 this->sessionGroupRow= this->sessionGroupRow % 3;
                 ui->SessionGroup->setCurrentRow(this->sessionGroupRow,QItemSelectionModel::Deselect);
                 this->sessionGroupRow++;
-<<<<<<< Updated upstream
                 this->sessionGroupRow= this->sessionGroupRow % 3;
                 ui->SessionGroup->setCurrentRow(this->sessionGroupRow,QItemSelectionModel::Select);
-=======
-                ui->SessionGroup->setCurrentRow(this->sessionGroupRow % 3,QItemSelectionModel::Select);
-
->>>>>>> Stashed changes
-                switch(this->sessionGroupRow){
-                    case 0: this->curSession->setSG(TWENTY_MIN);
-                    break;
-                    case 1: this->curSession->setSG(FOURTY_FIVE_MIN);
-                    break;
-                    case 2: this->curSession->setSG(this->curCustomTime);
-                }
             }
         }
     }
