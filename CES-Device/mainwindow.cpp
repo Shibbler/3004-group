@@ -37,7 +37,7 @@ MainWindow::MainWindow(QWidget *parent)
     initSlots();
 
     //TESTING
-    curSession = new Session(0,20,33,100.0);
+    curSession = new Session(0,20,30,0.0, 1.0);
     this->connectionStrength = 1; //to model full connection
 
     Session *toCopy = new Session(curSession);
@@ -50,15 +50,23 @@ MainWindow::MainWindow(QWidget *parent)
 
 void MainWindow::loadSession(){
     if (this->powerStatus){
-        this->curSession = this->savedSessions[ui->sessionStore->currentIndex()];//might want to use model column
+        delete curSession;
+        this->curSession = new Session(this->savedSessions[ui->sessionStore->currentIndex()]); //might want to use model column
+        this->curSession->id = 0;
     }
 }
 
 void MainWindow::saveSession(){
     if (this->powerStatus){
         curSession->id = savedSessions[ui->sessionStore->currentIndex()]->id;
+        qInfo("id for cur session %d \n", curSession->id);
+        qInfo("id for the saved session in the array %d \n", savedSessions[ui->sessionStore->currentIndex()]->id);
+        qInfo("%s \n", curSession->getRecord());
+
+
         delete savedSessions[ui->sessionStore->currentIndex()]; //release memory allocated for previous session stored in the array
         savedSessions[ui->sessionStore->currentIndex()] = new Session(curSession);  //use cpy ctor to create a new session
+        qInfo("%s \n", savedSessions[ui->sessionStore->currentIndex()]->getRecord());
     }
 }
 
@@ -129,10 +137,10 @@ void MainWindow::updateCustomTime(){
 //function to be called for battery drainage (should be timed)
 void MainWindow::drainBattery(){
     //battery drains: Hz/100 *connection (3 possible values (0.33, 0.66,1)) * lengthOfSession/60
-    //qDebug() << "Session intensity: " << curSession->getIntensity() << ". Connection strength: " << this->connectionStrength << ". Length of Session: " << this->curSession->getLength();
-    //qDebug() << "First piece of math /100 = " << (curSession->getIntensity()/100) << ". Second piece of math /60: " <<(this->curSession->getLength()/60);
+    //qDebug() << "Session Hertz: " << curSession->getHertz() << ". Connection strength: " << this->connectionStrength << ". Length of Session: " << this->curSession->getLength();
+    //qDebug() << "First piece of math /100 = " << (curSession->getHertz()/100) << ". Second piece of math /60: " <<(this->curSession->getLength()/60);
 
-    float amountToReduceBattery= ((curSession->getIntensity()/100) * this->connectionStrength * (this->curSession->getSG()/60));
+    float amountToReduceBattery= ((curSession->getHertz()/100) * this->connectionStrength * (this->curSession->getSG()/60));
 
     //qDebug() << amountToReduceBattery;
     if (inSession && powerStatus){//if we are in a session AND the power is on
@@ -231,13 +239,13 @@ void MainWindow::upButtonPressed(){
         sessionTypeRow--;
         ui->SessionType->setCurrentRow(sessionTypeRow,QItemSelectionModel::Select);
         switch(this->sessionTypeRow){
-            case 0: this->curSession->setSG(DELTA);
+            case 0: this->curSession->setST(DELTA); this->curSession->setHertz(DELTA_HZ);
             break;
-            case 1: this->curSession->setSG(THETA);
+            case 1: this->curSession->setST(THETA); this->curSession->setHertz(THETA_HZ);
             break;
-            case 2: this->curSession->setSG(ALPHA);
+            case 2: this->curSession->setST(ALPHA); this->curSession->setHertz(ALPHA_HZ);
             break;
-            case 3: this->curSession->setSG(ONE_HUNDRED);
+            case 3: this->curSession->setST(ONE_HUNDRED); this->curSession->setHertz(ONE_HUNDRED_HZ);
         }
     }
 }
@@ -248,13 +256,13 @@ void MainWindow::downButtonPressed(){
         sessionTypeRow++;
         ui->SessionType->setCurrentRow(sessionTypeRow,QItemSelectionModel::Select);
         switch(this->sessionTypeRow){
-            case 0: this->curSession->setSG(DELTA);
+            case 0: this->curSession->setST(DELTA); this->curSession->setHertz(DELTA_HZ);
             break;
-            case 1: this->curSession->setSG(THETA);
+            case 1: this->curSession->setST(THETA); this->curSession->setHertz(THETA_HZ);
             break;
-            case 2: this->curSession->setSG(ALPHA);
+            case 2: this->curSession->setST(ALPHA); this->curSession->setHertz(ALPHA_HZ);
             break;
-            case 3: this->curSession->setSG(ONE_HUNDRED);
+            case 3: this->curSession->setST(ONE_HUNDRED); this->curSession->setHertz(ONE_HUNDRED_HZ);
         }
     }
 }
@@ -278,11 +286,11 @@ void MainWindow::loadSessions()
         if (fgets(temp, 200, file) != NULL)
         {
             int id, st;
-            float intensity, sg;
+            float Hertz, sg, intensity;
 
-            sscanf(temp, "%d %f %d %f", &id, &sg, &st, &intensity);
+            sscanf(temp, "%d %f %d %f %f", &id, &sg, &st, &Hertz, &intensity);
 
-            savedSessions[i] = new Session(id, sg, st, intensity);
+            savedSessions[i] = new Session(id, sg, st, Hertz, intensity);
             delete temp;
             continue;
         }
