@@ -251,27 +251,36 @@ void MainWindow::upButtonPressed(){
 }
 
 void MainWindow::downButtonPressed(){
-    if (sessionTypeRow < 3){
-        ui->SessionType->setCurrentRow(sessionTypeRow,QItemSelectionModel::Deselect);
-        sessionTypeRow++;
-        ui->SessionType->setCurrentRow(sessionTypeRow,QItemSelectionModel::Select);
-        switch(this->sessionTypeRow){
-            case 0: this->curSession->setST(DELTA); this->curSession->setHertz(DELTA_HZ);
-            break;
-            case 1: this->curSession->setST(THETA); this->curSession->setHertz(THETA_HZ);
-            break;
-            case 2: this->curSession->setST(ALPHA); this->curSession->setHertz(ALPHA_HZ);
-            break;
-            case 3: this->curSession->setST(ONE_HUNDRED); this->curSession->setHertz(ONE_HUNDRED_HZ);
+    if(powerStatus){
+        if (inSession){//adjust the intensity
+
+
         }
-    }
+        else{//iterate through session types
+            if (sessionTypeRow < 3){
+                ui->SessionType->setCurrentRow(sessionTypeRow,QItemSelectionModel::Deselect);
+                sessionTypeRow++;
+                ui->SessionType->setCurrentRow(sessionTypeRow,QItemSelectionModel::Select);
+                switch(this->sessionTypeRow){
+                    case 0: this->curSession->setST(DELTA); this->curSession->setHertz(DELTA_HZ);
+                    break;
+                    case 1: this->curSession->setST(THETA); this->curSession->setHertz(THETA_HZ);
+                    break;
+                    case 2: this->curSession->setST(ALPHA); this->curSession->setHertz(ALPHA_HZ);
+                    break;
+                    case 3: this->curSession->setST(ONE_HUNDRED); this->curSession->setHertz(ONE_HUNDRED_HZ);
+                }
+            }
+        }
 }
 
 void MainWindow::loadSessions()
 {
+
+// LUCAS: "/home/student/3004-group/CES-Device/database.txt"
     //open the db file for reading
     FILE *file;
-    file = fopen("/home/student/Desktop/prj/3004-group/CES-Device/database.txt", "r");
+    file = fopen("/home/student/3004-group/CES-Device/database.txt", "r");
 
     if (file == NULL)
     {
