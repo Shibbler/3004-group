@@ -18,6 +18,7 @@ public:
     ~MainWindow();
     QTimer *batteryTimer;
     QTimer *softOffTimer;
+    QTimer *noSessionTimer;
 
 
 private:
@@ -40,6 +41,7 @@ public slots:
     void earlobeWeakButton();
     void earlobeStrongButton();
     void earlobeDetachButton();
+    void powerDown();
 
 signals:
 

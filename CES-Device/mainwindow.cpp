@@ -11,8 +11,11 @@ MainWindow::MainWindow(QWidget *parent)
 
 
     connect(ui->PowerButton, SIGNAL (pressed()) , this, SLOT (powerClickedHeld()));
-
     connect(ui->PowerButton, SIGNAL (released()) , this, SLOT (softOffFromButton()));
+
+
+
+
 
     connect(ui->StartButton, SIGNAL (released()) , this, SLOT (startButton()));
 
@@ -24,8 +27,10 @@ MainWindow::MainWindow(QWidget *parent)
 
     this->batteryTimer = new QTimer(this);
     this->softOffTimer = new QTimer(this);
+    this->noSessionTimer = new QTimer(this);
     connect(batteryTimer, SIGNAL (timeout()),this, SLOT (drainBattery()));
     connect(softOffTimer, SIGNAL (timeout()),this, SLOT (softOffTimed()));
+    connect(noSessionTimer, SIGNAL(timeout()),this, SLOT (powerDown()));
 
 
     //set batteryPower to 100
@@ -50,13 +55,24 @@ MainWindow::MainWindow(QWidget *parent)
 
     //if we want to 'save' a session, all ya need to do is delete old pointer and make a new one using copy constructor and current session. only thing to keep in mind is saving the right 'id'
     //at startup we can read the "DB" textfile and load in all the saved sessions. To start out, the DB file is filled with placeholder default sessions.
-
-
 }
+
+//SHOULD TURN OFF IN TWO MINS IF NO SESSION SELECTED
+
+
+void MainWindow::powerDown(){
+    this->powerStatus=false;
+    this->noSessionTimer->stop();
+    ui->powerLabel->setText("POWER: OFF");
+}
+
 
 
 void MainWindow::startButton(){
     this->inSession = true;
+    this->noSessionTimer->stop();
+    this->noSessionTimer->start(120000);
+    //should start the currently loaded session
 }
 
 void MainWindow::earlobeStrongButton(){
@@ -92,15 +108,11 @@ void MainWindow::earlobeDetachButton(){
 }
 
 
-
-
 //function to be called for battery drainage (should be timed)
 void MainWindow::drainBattery(){
     //battery drains: Hz/100 *connection (3 possible values (0.33, 0.66,1)) * lengthOfSession/60
-
-
-    qDebug() << "Session intensity: " << curSession->getIntensity() << ". Connection strength: " << this->connectionStrength << ". Length of Session: " << this->curSession->getLength();
-    qDebug() << "First piece of math /100 = " << (curSession->getIntensity()/100) << ". Second piece of math /60: " <<(this->curSession->getLength()/60);
+    //qDebug() << "Session intensity: " << curSession->getIntensity() << ". Connection strength: " << this->connectionStrength << ". Length of Session: " << this->curSession->getLength();
+    //qDebug() << "First piece of math /100 = " << (curSession->getIntensity()/100) << ". Second piece of math /60: " <<(this->curSession->getLength()/60);
 
     float amountToReduceBattery= ((curSession->getIntensity()/100) * this->connectionStrength * (this->curSession->getLength()/60));
 
@@ -111,6 +123,7 @@ void MainWindow::drainBattery(){
         if (this->batteryLevel <= 0){//if battery is reduced such that there is no more charge
             this->powerStatus = false;
             ui->powerLabel->setText("POWER: OFF");
+            this->noSessionTimer->stop();
             ui->batteryLabel_2->setText("0");
         }
     }
@@ -125,12 +138,11 @@ void MainWindow::softOffFromButton(){
             ui->SessionType_2->setCurrentRow(8);
             softOffTimer->start(500);
         }
+        //ensure booleans are nice again
+        this->powerDown();
+        this->softOffRow = 0;
+        ui->powerLabel->setText("POWER: OFF");
     }
-    //ensure booleans are nice again
-    this->inSession = false;
-    this->powerStatus = false;
-    this->softOffRow = 0;
-    ui->powerLabel->setText("POWER: OFF");
 }
 
 void MainWindow::softOffTimed(){
@@ -144,19 +156,20 @@ void MainWindow::softOffTimed(){
     }
 }
 
-//models a very simple case of turning the  device on, or off by HOLDING the button, might need to be more complex
+//models a very simple case of turning the  device on, or off by HOLDING the button, might need to be more complex RIGHT NOW JUST PRESSING
 void MainWindow::powerClickedHeld(){ //we can call this a hard off
     if (this->powerStatus == false){//if trying to turn on
         if (this->batteryLevel >0){
             ui->powerLabel->setText("POWER: ON");
            // batteryTimer->start(1000); //starts the battery drain THIS SHOULD PROBABLY ONLY DRAIN WITH SESSION
             this->powerStatus = true;
+            this->inSession= false;
+            this->noSessionTimer->start(120000);
         }else{
             ui->powerLabel->setText("NO CHARGE");
         }
     }else{//if trying to turn off
-        this->powerStatus = false;
-        ui->powerLabel->setText("POWER: OFF");
+        this->powerDown();
     }
 }
 
