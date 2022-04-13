@@ -13,15 +13,15 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->PowerButton, SIGNAL (pressed()) , this, SLOT (powerClickedHeld()));
     connect(ui->PowerButton, SIGNAL (released()) , this, SLOT (softOffFromButton()));
 
-
-
-
+    connect(ui->loadButton, SIGNAL(released()) , this, SLOT (loadSession()));
 
     connect(ui->StartButton, SIGNAL (released()) , this, SLOT (startButton()));
 
     connect(ui->earButtonStrong, SIGNAL (released()) , this, SLOT (earlobeStrongButton()));
 
     connect(ui->earButtonWeak, SIGNAL (released()) , this, SLOT (earlobeWeakButton()));
+
+    connect(ui->detachEars, SIGNAL (released()) , this, SLOT (earlobeDetachButton()));
 
     connect(ui->detachEars, SIGNAL (released()) , this, SLOT (earlobeDetachButton()));
 
@@ -45,6 +45,17 @@ MainWindow::MainWindow(QWidget *parent)
     //TESTING
     Session *test = new Session(0,60,30,30,20);
     this->connectionStrength = 1; //to model full connection
+    this->savedSessions[1]=test;
+
+
+    Session *test2 = new Session(0,100,100,100,100);
+    this->savedSessions[0]=test2;
+
+    Session *test3 = new Session(0,1000,1000,1000,1000);
+    this->savedSessions[9]=test3;
+
+
+
     Session *toCopy = new Session(test);
     this->curSession = test;
 
@@ -59,6 +70,12 @@ MainWindow::MainWindow(QWidget *parent)
 
 //SHOULD TURN OFF IN TWO MINS IF NO SESSION SELECTED
 
+//works by loading the ith session of savedSessions, where i current index of the QComboBox (like a list, so session 1 =0
+void MainWindow::loadSession(){
+    if (this->powerStatus){
+        this->curSession = this->savedSessions[ui->sessionStore->currentIndex()];//might want to use model column
+    }
+}
 
 void MainWindow::powerDown(){
     this->powerStatus=false;
@@ -69,42 +86,49 @@ void MainWindow::powerDown(){
 
 
 void MainWindow::startButton(){
-    this->inSession = true;
-    this->noSessionTimer->stop();
-    this->noSessionTimer->start(120000);
-    //should start the currently loaded session
+    if (this->powerStatus){
+        this->inSession = true;
+        this->noSessionTimer->stop();
+        //should start the currently loaded session
+    }
 }
 
 void MainWindow::earlobeStrongButton(){
-    this->connectionStrength = 1;
-    for (int i = 0; i< 8; i++){
-        ui->SessionType_2->setCurrentRow(i, QItemSelectionModel::Deselect);
+    if (this->powerStatus){
+        this->connectionStrength = 1;
+        for (int i = 0; i< 8; i++){
+            ui->SessionType_2->setCurrentRow(i, QItemSelectionModel::Deselect);
+        }
+        ui->SessionType_2->setCurrentRow(0, QItemSelectionModel::Select);
+        ui->SessionType_2->setCurrentRow(1, QItemSelectionModel::Select);
+        ui->SessionType_2->setCurrentRow(2, QItemSelectionModel::Select);
+        qDebug() << "StrongConnection Pressed";
     }
-    ui->SessionType_2->setCurrentRow(0, QItemSelectionModel::Select);
-    ui->SessionType_2->setCurrentRow(1, QItemSelectionModel::Select);
-    ui->SessionType_2->setCurrentRow(2, QItemSelectionModel::Select);
-    qDebug() << "StrongConnection Pressed";
 
 }
 
 void MainWindow::earlobeWeakButton(){
-    this->connectionStrength = 0.66;
-    for (int i = 0; i< 8; i++){
-        ui->SessionType_2->setCurrentRow(i, QItemSelectionModel::Deselect);
+    if (this->powerStatus){
+        this->connectionStrength = 0.66;
+        for (int i = 0; i< 8; i++){
+            ui->SessionType_2->setCurrentRow(i, QItemSelectionModel::Deselect);
+        }
+        ui->SessionType_2->setCurrentRow(3, QItemSelectionModel::Select);
+        ui->SessionType_2->setCurrentRow(4, QItemSelectionModel::Select);
+        ui->SessionType_2->setCurrentRow(5, QItemSelectionModel::Select);
     }
-    ui->SessionType_2->setCurrentRow(3, QItemSelectionModel::Select);
-    ui->SessionType_2->setCurrentRow(4, QItemSelectionModel::Select);
-    ui->SessionType_2->setCurrentRow(5, QItemSelectionModel::Select);
 }
 
 void MainWindow::earlobeDetachButton(){
-    this->connectionStrength = 0.33;
-    for (int i = 0; i< 8; i++){
-        ui->SessionType_2->setCurrentRow(i, QItemSelectionModel::Deselect);
-    }
+    if (this->powerStatus){
+        this->connectionStrength = 0.33;
+        for (int i = 0; i< 8; i++){
+            ui->SessionType_2->setCurrentRow(i, QItemSelectionModel::Deselect);
+        }
 
-    ui->SessionType_2->setCurrentRow(6, QItemSelectionModel::Select);
-    ui->SessionType_2->setCurrentRow(7, QItemSelectionModel::Select);
+        ui->SessionType_2->setCurrentRow(6, QItemSelectionModel::Select);
+        ui->SessionType_2->setCurrentRow(7, QItemSelectionModel::Select);
+    }
 }
 
 
