@@ -39,7 +39,9 @@ private:
     int numSessions;
     bool inSession;
     int softOffRow;
+    int sessionGroupRow = 0;
     bool powerStatus;
+    float curCustomTime = 0;
     void loadSessions();
     void saveSessions();
 
@@ -48,7 +50,6 @@ private:
     static const quint64 MY_LONG_PRESS_THRESHOLD=1000;
 
 public slots:
-    void powerClickedHeld();
     void drainBattery();
     void softOffFromButton();
     void softOffTimed();

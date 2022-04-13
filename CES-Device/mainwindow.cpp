@@ -34,6 +34,9 @@ MainWindow::MainWindow(QWidget *parent)
 
     connect(ui->detachEars, SIGNAL (released()) , this, SLOT (earlobeDetachButton()));
 
+
+
+
     this->incTimer = new QTimer(this);
     this->batteryTimer = new QTimer(this);
     this->softOffTimer = new QTimer(this);
@@ -240,24 +243,6 @@ void MainWindow::softOffTimed(){
     }
 }
 
-//models a very simple case of turning the  device on, or off by HOLDING the button, might need to be more complex RIGHT NOW JUST PRESSING
-void MainWindow::powerClickedHeld(){ //we can call this a hard off
-    if (this->powerStatus == false){//if trying to turn on
-        if (this->batteryLevel >0){
-            ui->powerLabel->setText("POWER: ON");
-           // batteryTimer->start(1000); //starts the battery drain THIS SHOULD PROBABLY ONLY DRAIN WITH SESSION
-            this->powerStatus = true;
-            this->inSession= false;
-            this->noSessionTimer->start(120000);
-        }else{
-            ui->powerLabel->setText("NO CHARGE");
-        }
-    }else{//if trying to turn off
-        this->powerDown();
-    }
-}
-
-
 void MainWindow::power_pressed(){
     mLastPressTime = timeSinceStart;
 }
@@ -292,9 +277,19 @@ void MainWindow::power_released(){
             softOffFromButton();
             qDebug() << "Called softOffFromButton, we were already in a session";
         }else{
-            // Time to select a session
-
-
+            // Time to select a session this->sessionGroupRow
+            if (this->powerStatus){
+                ui->SessionGroup->setCurrentRow(this->sessionGroupRow % 3,QItemSelectionModel::Deselect);
+                this->sessionGroupRow++;
+                ui->SessionGroup->setCurrentRow(this->sessionGroupRow % 3,QItemSelectionModel::Select);
+                switch(this->sessionGroupRow){
+                    case 0: this->curSession->setSG(TWENTY_MIN);
+                    break;
+                    case 1: this->curSession->setSG(FOURTY_FIVE_MIN);
+                    break;
+                    case 2: this->curSession->setSG(curCustomTime);
+                }
+            }
         }
     }
 }
