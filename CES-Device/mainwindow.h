@@ -41,6 +41,8 @@ private:
     int softOffRow;
     bool powerStatus;
     void loadSessions();
+    void saveSessions();
+
 
     quint64 mLastPressTime=0;
     static const quint64 MY_LONG_PRESS_THRESHOLD=1000;

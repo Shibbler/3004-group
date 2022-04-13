@@ -16,22 +16,22 @@ class Session
 {
 
 public:
-    Session(int, int, int, float);
+    Session(int, float, int, float);
     Session(const Session *sesh);            //copy constructor for saving a session
     ~Session();
     char* getRecord();
     int id;
     float getIntensity();
-    int getSG();
+    float getSG();
     int getST();
     float setIntensity(float);
-    int setSG(int);
+    float setSG(float);
     int setST(int);
 
 private:
     float intensity;
     int sessionType;
-    int sessionGroup;
+    float sessionGroup;
     char* sessionRecord;
     void setRecord();
 };

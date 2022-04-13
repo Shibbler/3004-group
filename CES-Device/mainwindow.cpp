@@ -5,7 +5,7 @@
 #include <QTapAndHoldGesture>
 
 #include <QDateTime>
-
+#include <stdio.h>
 
 
 MainWindow::MainWindow(QWidget *parent)
@@ -68,6 +68,7 @@ MainWindow::MainWindow(QWidget *parent)
 
     qInfo("%s", test->getRecord());
     qInfo("%s", toCopy->getRecord());
+    //qInfo("%s", savedSessions[0]->getRecord());
     //TESTING
 }
 
@@ -78,11 +79,34 @@ MainWindow::MainWindow(QWidget *parent)
 void MainWindow::loadSessions()
 {
     //open the db file for reading
+//    FILE *file;
+//    file = fopen("database.txt", "r");
 
-    for (int i = 0; i < MAX_SESSIONS; i++)
-    {
-        //read some lines from file, create new session in array
-    }
+//    if (file == NULL)
+//    {
+//        qInfo("error reading the db file. exiting\n");
+//        exit(1);
+//    }
+
+//    char* temp = (char*) malloc(20);
+
+
+//    for (int i = 0; i < MAX_SESSIONS; i++)
+//    {
+//        if (fgets(temp, 20, file) != NULL)
+//        {
+//            int id, sg, st;
+//            float i;
+
+//            sscanf(temp, "%d%2.2f%d%2.2f", id, sg, st, i);
+//            savedSessions[i] = new Session(id, sg, st, i);
+
+//        }
+//        else
+//            break;
+//    }
+
+//    delete temp;
 }
 
 void MainWindow::saveSessions()
