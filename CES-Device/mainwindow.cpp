@@ -132,13 +132,16 @@ void MainWindow::updateCustomTime(){
     this->curCustomTime = ui->UserDesSlider->sliderPosition();
     ui->timeLabel->setText(QString::number(this->curCustomTime));
     qDebug() << this->curCustomTime;
+    if (this->sessionGroupRow == 2){//custom time is selected
+        this->curSession->setSG(this->curCustomTime);
+    }
 }
 
 //function to be called for battery drainage (should be timed)
 void MainWindow::drainBattery(){
     //battery drains: Hz/100 *connection (3 possible values (0.33, 0.66,1)) * lengthOfSession/60
-    qDebug() << "Session Hertz: " << curSession->getHertz() << ". Connection strength: " << this->connectionStrength <<". Current Intensity: "<< this->curSession->getIntensity() << ". Length of Session: " << this->curSession->getSG();
-    qDebug() << "First piece of math /100 = " << (curSession->getHertz()/100) << ". Second piece of math /60: " <<(this->curSession->getSG()/60) << "third piece of math: "<< (this->connectionStrength +(this->curSession->getIntensity()/10));
+    //qDebug() << "Session Hertz: " << curSession->getHertz() << ". Connection strength: " << this->connectionStrength <<". Current Intensity: "<< this->curSession->getIntensity() << ". Length of Session: " << this->curSession->getSG();
+    //qDebug() << "First piece of math /100 = " << (curSession->getHertz()/100) << ". Second piece of math /60: " <<(this->curSession->getSG()/60) << "third piece of math: "<< (this->connectionStrength +(this->curSession->getIntensity()/10));
 
     float amountToReduceBattery= ((curSession->getHertz()/100) * (this->connectionStrength +(this->curSession->getIntensity()/10)) * (this->curSession->getSG()/60));
 
@@ -220,15 +223,17 @@ void MainWindow::power_released(){
         }else{
             // Time to select a session this->sessionGroupRow
             if (this->powerStatus){
-                ui->SessionGroup->setCurrentRow(this->sessionGroupRow % 3,QItemSelectionModel::Deselect);
+                this->sessionGroupRow= this->sessionGroupRow % 3;
+                ui->SessionGroup->setCurrentRow(this->sessionGroupRow,QItemSelectionModel::Deselect);
                 this->sessionGroupRow++;
-                ui->SessionGroup->setCurrentRow(this->sessionGroupRow % 3,QItemSelectionModel::Select);
+                this->sessionGroupRow= this->sessionGroupRow % 3;
+                ui->SessionGroup->setCurrentRow(this->sessionGroupRow,QItemSelectionModel::Select);
                 switch(this->sessionGroupRow){
                     case 0: this->curSession->setSG(TWENTY_MIN);
                     break;
                     case 1: this->curSession->setSG(FOURTY_FIVE_MIN);
                     break;
-                    case 2: this->curSession->setSG(curCustomTime);
+                    case 2: this->curSession->setSG(this->curCustomTime);
                 }
             }
         }
@@ -243,13 +248,8 @@ void MainWindow::upButtonPressed(){
                 ui->SessionType_2->setCurrentRow(this->intensityRow,QItemSelectionModel::Deselect);
                 this->intensityRow--;
                 ui->SessionType_2->setCurrentRow(this->intensityRow,QItemSelectionModel::Select);
-                switch(this->intensityRow){
-                case 0: this->curSession->setSG(TWENTY_MIN);
-                break;
-                case 1: this->curSession->setSG(FOURTY_FIVE_MIN);
-                break;
-                case 2: this->curSession->setSG(curCustomTime);
-                }
+                this->curSession->setIntensity(8-this->intensityRow);
+
             }
         }
         else{
@@ -278,6 +278,7 @@ void MainWindow::downButtonPressed(){
                 ui->SessionType_2->setCurrentRow(this->intensityRow,QItemSelectionModel::Deselect);
                 this->intensityRow++;
                 ui->SessionType_2->setCurrentRow(this->intensityRow,QItemSelectionModel::Select);
+                this->curSession->setIntensity(8-this->intensityRow);
             }
         }
         else{//iterate through session types
