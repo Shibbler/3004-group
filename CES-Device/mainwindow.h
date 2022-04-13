@@ -43,7 +43,7 @@ private:
     bool powerStatus;
     float curCustomTime = 0;
     int sessionTypeRow = 1;
-    int curIntensity = 1;
+    int intensityRow = 1;
     void loadSessions();
     void saveSessions();
     void initSlots();

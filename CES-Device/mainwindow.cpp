@@ -137,10 +137,10 @@ void MainWindow::updateCustomTime(){
 //function to be called for battery drainage (should be timed)
 void MainWindow::drainBattery(){
     //battery drains: Hz/100 *connection (3 possible values (0.33, 0.66,1)) * lengthOfSession/60
-    //qDebug() << "Session Hertz: " << curSession->getHertz() << ". Connection strength: " << this->connectionStrength << ". Length of Session: " << this->curSession->getLength();
-    //qDebug() << "First piece of math /100 = " << (curSession->getHertz()/100) << ". Second piece of math /60: " <<(this->curSession->getLength()/60);
+    qDebug() << "Session Hertz: " << curSession->getHertz() << ". Connection strength: " << this->connectionStrength <<". Current Intensity: "<< this->curSession->getIntensity() << ". Length of Session: " << this->curSession->getSG();
+    qDebug() << "First piece of math /100 = " << (curSession->getHertz()/100) << ". Second piece of math /60: " <<(this->curSession->getSG()/60) << "third piece of math: "<< (this->connectionStrength +(this->curSession->getIntensity()/10));
 
-    float amountToReduceBattery= ((curSession->getHertz()/100) * this->connectionStrength * (this->curSession->getSG()/60));
+    float amountToReduceBattery= ((curSession->getHertz()/100) * (this->connectionStrength +(this->curSession->getIntensity()/10)) * (this->curSession->getSG()/60));
 
     //qDebug() << amountToReduceBattery;
     if (inSession && powerStatus){//if we are in a session AND the power is on
@@ -158,6 +158,9 @@ void MainWindow::drainBattery(){
 //call the softoffbased on button press
 void MainWindow::softOffFromButton(){
         //only call if inSession, otherwise softOff not required
+        for (int i = 0; i< 8; i++){
+            ui->SessionType_2->setCurrentRow(i,QItemSelectionModel::Deselect);
+        }
         this->softOffRow = 0;
         ui->SessionType_2->setCurrentRow(this->softOffRow,QItemSelectionModel::Select);
         for (int i = 0; i< 8; i++){//start 5 timers (this will be a bit hacky, but it works.
@@ -213,7 +216,7 @@ void MainWindow::power_released(){
         // Are we in a session already?
         if (this->inSession == true){
             softOffFromButton();
-            qDebug() << "Called softOffFromButton, we were already in a session";
+            //qDebug() << "Called softOffFromButton, we were already in a session";
         }else{
             // Time to select a session this->sessionGroupRow
             if (this->powerStatus){
@@ -234,18 +237,36 @@ void MainWindow::power_released(){
 
 
 void MainWindow::upButtonPressed(){
-    if (sessionTypeRow > 0){
-        ui->SessionType->setCurrentRow(sessionTypeRow,QItemSelectionModel::Deselect);
-        sessionTypeRow--;
-        ui->SessionType->setCurrentRow(sessionTypeRow,QItemSelectionModel::Select);
-        switch(this->sessionTypeRow){
-            case 0: this->curSession->setST(DELTA); this->curSession->setHertz(DELTA_HZ);
-            break;
-            case 1: this->curSession->setST(THETA); this->curSession->setHertz(THETA_HZ);
-            break;
-            case 2: this->curSession->setST(ALPHA); this->curSession->setHertz(ALPHA_HZ);
-            break;
-            case 3: this->curSession->setST(ONE_HUNDRED); this->curSession->setHertz(ONE_HUNDRED_HZ);
+    if(powerStatus){
+        if (inSession){//adjust the intensity
+            if (this->intensityRow > 0){
+                ui->SessionType_2->setCurrentRow(this->intensityRow,QItemSelectionModel::Deselect);
+                this->intensityRow--;
+                ui->SessionType_2->setCurrentRow(this->intensityRow,QItemSelectionModel::Select);
+                switch(this->intensityRow){
+                case 0: this->curSession->setSG(TWENTY_MIN);
+                break;
+                case 1: this->curSession->setSG(FOURTY_FIVE_MIN);
+                break;
+                case 2: this->curSession->setSG(curCustomTime);
+                }
+            }
+        }
+        else{
+            if (sessionTypeRow > 0){//selecting session type
+                ui->SessionType->setCurrentRow(sessionTypeRow,QItemSelectionModel::Deselect);
+                sessionTypeRow--;
+                ui->SessionType->setCurrentRow(sessionTypeRow,QItemSelectionModel::Select);
+                switch(this->sessionTypeRow){
+                    case 0: this->curSession->setST(DELTA); this->curSession->setHertz(DELTA_HZ);
+                    break;
+                    case 1: this->curSession->setST(THETA); this->curSession->setHertz(THETA_HZ);
+                    break;
+                    case 2: this->curSession->setST(ALPHA); this->curSession->setHertz(ALPHA_HZ);
+                    break;
+                    case 3: this->curSession->setST(ONE_HUNDRED); this->curSession->setHertz(ONE_HUNDRED_HZ);
+                }
+            }
         }
     }
 }
@@ -253,8 +274,11 @@ void MainWindow::upButtonPressed(){
 void MainWindow::downButtonPressed(){
     if(powerStatus){
         if (inSession){//adjust the intensity
-
-
+            if (this->intensityRow < 7){
+                ui->SessionType_2->setCurrentRow(this->intensityRow,QItemSelectionModel::Deselect);
+                this->intensityRow++;
+                ui->SessionType_2->setCurrentRow(this->intensityRow,QItemSelectionModel::Select);
+            }
         }
         else{//iterate through session types
             if (sessionTypeRow < 3){
@@ -272,6 +296,7 @@ void MainWindow::downButtonPressed(){
                 }
             }
         }
+    }
 }
 
 void MainWindow::loadSessions()
