@@ -19,7 +19,6 @@ MainWindow::MainWindow(QWidget *parent)
     path = (char*) malloc(200);
     getcwd(path, 200);
     strcat(path, "/database.txt");
-    qInfo("path is: %s\n", path);
 
     //read saved sessions from DB textfile and store them in the array of sessions
     loadSessions();
@@ -29,6 +28,7 @@ MainWindow::MainWindow(QWidget *parent)
     this->batteryTimer = new QTimer(this);
     this->softOffTimer = new QTimer(this);
     this->noSessionTimer = new QTimer(this);
+    this->sessionTimer = new QTimer(this);
     this->incTimer->start(1000); // Every 1000
 
     //set batteryPower to 100
@@ -64,15 +64,24 @@ void MainWindow::loadSession(){
 
 void MainWindow::saveSession(){
     if (this->powerStatus){
-        curSession->id = savedSessions[ui->sessionStore->currentIndex()]->id;
-        qInfo("id for cur session %d \n", curSession->id);
-        qInfo("id for the saved session in the array %d \n", savedSessions[ui->sessionStore->currentIndex()]->id);
-        qInfo("%s \n", curSession->getRecord());
+
+        if (inSession)
+        {
+            saveInSession = true;
+            this->ui->saveButton->setEnabled(false);
+        }
+        else
+        {
+            curSession->id = savedSessions[ui->sessionStore->currentIndex()]->id;
+            qInfo("id for cur session %d \n", curSession->id);
+            qInfo("id for the saved session in the array %d \n", savedSessions[ui->sessionStore->currentIndex()]->id);
+            qInfo("%s \n", curSession->getRecord());
 
 
-        delete savedSessions[ui->sessionStore->currentIndex()]; //release memory allocated for previous session stored in the array
-        savedSessions[ui->sessionStore->currentIndex()] = new Session(curSession);  //use cpy ctor to create a new session
-        qInfo("%s \n", savedSessions[ui->sessionStore->currentIndex()]->getRecord());
+            delete savedSessions[ui->sessionStore->currentIndex()]; //release memory allocated for previous session stored in the array
+            savedSessions[ui->sessionStore->currentIndex()] = new Session(curSession);  //use cpy ctor to create a new session
+            qInfo("%s \n", savedSessions[ui->sessionStore->currentIndex()]->getRecord());
+        }
     }
 }
 
@@ -83,6 +92,7 @@ void MainWindow::increaseTime(){
 void MainWindow::powerDown(){
     this->powerStatus=false;
     this->noSessionTimer->stop();
+    this->sessionTimer->stop();
     ui->powerLabel->setText("POWER: OFF");
 }
 
@@ -92,6 +102,9 @@ void MainWindow::startButton(){
     if (this->powerStatus){
         this->inSession = true;
         this->noSessionTimer->stop();
+        this->sessionTimer->start(curSession->getSG() * 1000);
+
+
         //should start the currently loaded session
     }
 }
@@ -167,6 +180,8 @@ void MainWindow::drainBattery(){
 //call the softoffbased on button press
 void MainWindow::softOffFromButton(){
         //only call if inSession, otherwise softOff not required
+        this->sessionTimer->stop();
+
         for (int i = 0; i< 8; i++){
             ui->SessionType_2->setCurrentRow(i,QItemSelectionModel::Deselect);
         }
@@ -177,7 +192,6 @@ void MainWindow::softOffFromButton(){
             softOffTimer->start(500);
         }
         //ensure booleans are nice again
-        this->powerDown();
         this->softOffRow = 0;
         ui->powerLabel->setText("POWER: OFF");
 }
@@ -190,6 +204,14 @@ void MainWindow::softOffTimed(){
        //qDebug() << "The row is: " << this->softOffRow;
     }else{
         this->softOffTimer->stop();
+        this->inSession = false;
+        if (saveInSession)
+        {
+            this->saveInSession = false;
+            saveSession();
+            this->ui->saveButton->setEnabled(true);
+        }
+        this->powerDown();
     }
 }
 
@@ -318,19 +340,13 @@ void MainWindow::loadSessions()
 {
 
     //open the db file for reading
-    qInfo("trying to open file\n");
     FILE *file;
     file = fopen(path, "r");
-    qInfo("file path opened for read?\n");
 
     if (file == NULL) //file does not exist yet. setup fresh db file for new project
     {
-        qInfo("file does not exist yet.\n");
         file = fopen(path, "w");  //reopen the file as write only, since file does not exist, this creates it
-        if (file == NULL)
-            qInfo("oh no\n");
 
-        qInfo("file opened for writing?\n");
         for (int i = 0; i < MAX_SESSIONS; i++)
         {
             savedSessions[i] = new Session(i+1, TWENTY_MIN, DELTA, DELTA_HZ, 1.0); //fill up saved sessions array with default values
@@ -406,6 +422,8 @@ void MainWindow::initSlots()
     connect(batteryTimer, SIGNAL (timeout()),this, SLOT (drainBattery()));
     connect(softOffTimer, SIGNAL (timeout()),this, SLOT (softOffTimed()));
     connect(noSessionTimer, SIGNAL(timeout()),this, SLOT (powerDown()));
+    connect(sessionTimer, SIGNAL(timeout()), this, SLOT(softOffFromButton()));
+
 
 }
 

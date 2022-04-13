@@ -24,7 +24,7 @@ public:
     QTimer *batteryTimer;
     QTimer *softOffTimer;
     QTimer *noSessionTimer;
-
+    QTimer *sessionTimer;
     QTimer *incTimer;
     int timeSinceStart = 0;
 
@@ -48,7 +48,7 @@ private:
     void saveSessions();
     void initSlots();
     char* path;
-
+    bool saveInSession = false;
 
     quint64 mLastPressTime=0;
     static const quint64 MY_LONG_PRESS_THRESHOLD=1000;

@@ -3,8 +3,7 @@
 
 //define session group constants. all session groups start with a 2
 #define TWENTY_MIN 20.0
-#define FOURTY_FIVE_MIN 21.0
-#define CUSTOM 22.0
+#define FOURTY_FIVE_MIN 45.0
 
 //define session type constants. all session types start with a 3
 #define DELTA 30
