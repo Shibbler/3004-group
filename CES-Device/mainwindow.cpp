@@ -245,6 +245,9 @@ void MainWindow::upButtonPressed(){
     if(powerStatus){
         if (inSession){//adjust the intensity
             if (this->intensityRow > 0){
+                for (int i = 0; i< 8; i++){
+                    ui->SessionType_2->setCurrentRow(i,QItemSelectionModel::Deselect);
+                }
                 ui->SessionType_2->setCurrentRow(this->intensityRow,QItemSelectionModel::Deselect);
                 this->intensityRow--;
                 ui->SessionType_2->setCurrentRow(this->intensityRow,QItemSelectionModel::Select);
@@ -275,6 +278,9 @@ void MainWindow::downButtonPressed(){
     if(powerStatus){
         if (inSession){//adjust the intensity
             if (this->intensityRow < 7){
+                for (int i = 0; i< 8; i++){
+                    ui->SessionType_2->setCurrentRow(i,QItemSelectionModel::Deselect);
+                }
                 ui->SessionType_2->setCurrentRow(this->intensityRow,QItemSelectionModel::Deselect);
                 this->intensityRow++;
                 ui->SessionType_2->setCurrentRow(this->intensityRow,QItemSelectionModel::Select);
@@ -339,8 +345,9 @@ void MainWindow::loadSessions()
 
 void MainWindow::saveSessions()
 {
+    // LUCAS: "/home/student/3004-group/CES-Device/database.txt"
     FILE *file;
-    file = fopen("/home/student/Desktop/prj/3004-group/CES-Device/database.txt", "w");
+    file = fopen("/home/student/3004-group/CES-Device/database.txt", "w");
 
     //clear contents of db file
 
