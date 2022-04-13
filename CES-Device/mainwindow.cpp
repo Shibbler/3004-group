@@ -357,14 +357,8 @@ void MainWindow::loadSessions()
 
 void MainWindow::saveSessions()
 {
-    // LUCAS: "/home/student/3004-group/CES-Device/database.txt"
     FILE *file;
-<<<<<<< Updated upstream
-    file = fopen("/home/student/3004-group/CES-Device/database.txt", "w");
-=======
     file = fopen(path, "w");
->>>>>>> Stashed changes
-
     //clear contents of db file
 
     for (int i = 0; i < MAX_SESSIONS; i++)
