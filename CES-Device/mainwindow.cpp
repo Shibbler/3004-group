@@ -45,6 +45,7 @@ MainWindow::MainWindow(QWidget *parent)
     this->batteryLevel = 100.0;
     //set in session bool to false
     this->inSession = false;
+    this->powerStatus = false;
     //this->softOffRow = 8;
     //start the timer to model battery depletion (always runs)
     batteryTimer->start(1000);
@@ -88,7 +89,6 @@ void MainWindow::loadSession(){
 void MainWindow::increaseTime(){
     timeSinceStart++;
 }
-
 
 void MainWindow::powerDown(){
     this->powerStatus=false;
@@ -217,7 +217,7 @@ void MainWindow::power_pressed(){
 void MainWindow::power_released(){
     qDebug() << "in power_released()";
     qDebug() << mLastPressTime;
-    if (timeSinceStart - mLastPressTime > 1){
+    if (timeSinceStart - mLastPressTime >= 1){
         qDebug() << "Power was held";
         // It was held, so this is a power on or a power off
 
@@ -232,7 +232,6 @@ void MainWindow::power_released(){
                 ui->powerLabel->setText("NO CHARGE");
             }
         }else{//if trying to turn off
-
             this->powerDown();
         }
     }else{

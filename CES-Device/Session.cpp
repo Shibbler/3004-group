@@ -18,7 +18,7 @@ Session::Session(const Session *sesh)
     sessionGroup = sesh->sessionGroup;
     sessionType = sesh->sessionType;
     intensity = sesh->intensity;
-    sessionRecord = (char*) malloc(20);
+    //sessionRecord = (char*) malloc(20);
     setRecord();
 }
 
@@ -66,12 +66,12 @@ int Session::setST(int st)
 
 char* Session::getRecord()
 {
-    return sessionRecord;
+    //return sessionRecord;
 }
 
 void Session::setRecord()
 {
-    sprintf(sessionRecord, ":%d:%d:%d:%f:", id, sessionGroup, sessionType, intensity);//may need to change cuz I made it a float
+    //sprintf(sessionRecord, ":%d:%d:%d:%f:", id, sessionGroup, sessionType, intensity);//may need to change cuz I made it a float
 }
 
 Session::~Session()
