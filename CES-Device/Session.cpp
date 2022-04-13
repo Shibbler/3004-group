@@ -1,7 +1,7 @@
 #include "Session.h"
 #include <stdio.h>
 #include "mainwindow.h"
-Session::Session(int identifier, int sg, int st, int i)
+Session::Session(int identifier, int sg, int st, float i)
 {
      id = identifier;
      sessionGroup = sg;
@@ -21,15 +21,16 @@ Session::Session(const Session *sesh)
     setRecord();
 }
 
-int Session::getIntensity()
+float Session::getIntensity()
 {
     return intensity;
 }
 
-int Session::setIntensity(int i)
+float Session::setIntensity(float i)
 {
     intensity = i;
     setRecord();
+    return intensity;
 }
 
 int Session::getSG()
@@ -41,6 +42,7 @@ int Session::setSG(int sg)
 {
     sessionGroup = sg;
     setRecord();
+    return sg;
 }
 
 int Session::getST()
@@ -52,6 +54,7 @@ int Session::setST(int st)
 {
     sessionType = st;
     setRecord();
+    return st;
 }
 
 char* Session::getRecord()
@@ -61,7 +64,7 @@ char* Session::getRecord()
 
 void Session::setRecord()
 {
-    sprintf(sessionRecord, ":%d:%d:%d:%d:", id, sessionGroup, sessionType, intensity);
+    sprintf(sessionRecord, ":%d:%d:%d:%2.2f:", id, sessionGroup, sessionType, intensity);
 }
 
 Session::~Session()
