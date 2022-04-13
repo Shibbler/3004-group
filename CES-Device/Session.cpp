@@ -7,7 +7,7 @@ Session::Session(int identifier, float sg, int st, float i)
      sessionGroup = sg;
      sessionType = st;
      intensity = i;
-     sessionRecord = (char*) malloc(20);
+     sessionRecord = (char*) malloc(100);
      setRecord();
 }
 
@@ -64,7 +64,7 @@ char* Session::getRecord()
 
 void Session::setRecord()
 {
-    sprintf(sessionRecord, ":%d:%2.2f:%d:%2.2f:", id, sessionGroup, sessionType, intensity);
+    sprintf(sessionRecord, "%d %2.2f %d %2.2f", id, sessionGroup, sessionType, intensity);
 }
 
 Session::~Session()

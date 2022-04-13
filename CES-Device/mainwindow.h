@@ -42,7 +42,7 @@ private:
     bool powerStatus;
     void loadSessions();
     void saveSessions();
-
+    void initSlots();
 
     quint64 mLastPressTime=0;
     static const quint64 MY_LONG_PRESS_THRESHOLD=1000;

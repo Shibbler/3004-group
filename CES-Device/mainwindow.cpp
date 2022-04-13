@@ -6,7 +6,7 @@
 
 #include <QDateTime>
 #include <stdio.h>
-
+#include <unistd.h>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -14,38 +14,14 @@ MainWindow::MainWindow(QWidget *parent)
 {
     ui->setupUi(this);
 
-
     //read saved sessions from DB textfile and store them in the array of sessions
     loadSessions();
-
-    connect(ui->loadButton, SIGNAL(released()) , this, SLOT (loadSession()));
-    connect(ui->saveButton, SIGNAL(released()) , this, SLOT (saveSession()));
-
-    connect(ui->PowerButton, SIGNAL (pressed()) , this, SLOT (power_pressed()));
-    connect(ui->PowerButton, SIGNAL (released()) , this, SLOT (power_released()));
-
-    connect(ui->StartButton, SIGNAL (released()) , this, SLOT (startButton()));
-
-    connect(ui->earButtonStrong, SIGNAL (released()) , this, SLOT (earlobeStrongButton()));
-
-    connect(ui->earButtonWeak, SIGNAL (released()) , this, SLOT (earlobeWeakButton()));
-
-    connect(ui->detachEars, SIGNAL (released()) , this, SLOT (earlobeDetachButton()));
-
-    connect(ui->detachEars, SIGNAL (released()) , this, SLOT (earlobeDetachButton()));
 
     this->incTimer = new QTimer(this);
     this->batteryTimer = new QTimer(this);
     this->softOffTimer = new QTimer(this);
     this->noSessionTimer = new QTimer(this);
-    connect(incTimer, SIGNAL (timeout()), this, SLOT (increaseTime()));
-    connect(batteryTimer, SIGNAL (timeout()),this, SLOT (drainBattery()));
-    connect(softOffTimer, SIGNAL (timeout()),this, SLOT (softOffTimed()));
-    connect(noSessionTimer, SIGNAL(timeout()),this, SLOT (powerDown()));
-
-
     this->incTimer->start(1000); // Every 1000
-
 
     //set batteryPower to 100
     this->batteryLevel = 100.0;
@@ -56,69 +32,18 @@ MainWindow::MainWindow(QWidget *parent)
     //start the timer to model battery depletion (always runs)
     batteryTimer->start(1000);
 
+    initSlots();
 
     //TESTING
-    Session *test = new Session(0,20,33,100.0);
+    curSession = new Session(0,20,33,100.0);
     this->connectionStrength = 1; //to model full connection
-    this->savedSessions[1]=test;
 
-    Session *toCopy = new Session(test);
-    this->curSession = test;
+    Session *toCopy = new Session(curSession);
 
-
-    qInfo("%s", test->getRecord());
+    qInfo("%s", curSession->getRecord());
     qInfo("%s", toCopy->getRecord());
-    //qInfo("%s", savedSessions[0]->getRecord());
+    qInfo("%s", savedSessions[0]->getRecord());
     //TESTING
-}
-
-//SHOULD TURN OFF IN TWO MINS IF NO SESSION SELECTED
-
-//works by loading the ith session of savedSessions, where i current index of the QComboBox (like a list, so session 1 =0
-
-void MainWindow::loadSessions()
-{
-    //open the db file for reading
-//    FILE *file;
-//    file = fopen("database.txt", "r");
-
-//    if (file == NULL)
-//    {
-//        qInfo("error reading the db file. exiting\n");
-//        exit(1);
-//    }
-
-//    char* temp = (char*) malloc(20);
-
-
-//    for (int i = 0; i < MAX_SESSIONS; i++)
-//    {
-//        if (fgets(temp, 20, file) != NULL)
-//        {
-//            int id, sg, st;
-//            float i;
-
-//            sscanf(temp, "%d%2.2f%d%2.2f", id, sg, st, i);
-//            savedSessions[i] = new Session(id, sg, st, i);
-
-//        }
-//        else
-//            break;
-//    }
-
-//    delete temp;
-}
-
-void MainWindow::saveSessions()
-{
-    //open db file for writing
-
-    //clear contents of db file
-
-    for (int i = 0; i < MAX_SESSIONS; i++)
-    {
-        //write the session from array to file
-    }
 }
 
 void MainWindow::loadSession(){
@@ -129,6 +54,7 @@ void MainWindow::loadSession(){
 
 void MainWindow::saveSession(){
     if (this->powerStatus){
+        curSession->id = savedSessions[ui->sessionStore->currentIndex()]->id;
         delete savedSessions[ui->sessionStore->currentIndex()]; //release memory allocated for previous session stored in the array
         savedSessions[ui->sessionStore->currentIndex()] = new Session(curSession);  //use cpy ctor to create a new session
     }
@@ -298,6 +224,85 @@ void MainWindow::power_released(){
         }
     }
 }
+
+void MainWindow::loadSessions()
+{
+    //open the db file for reading
+    FILE *file;
+    file = fopen("/home/student/Desktop/prj/3004-group/CES-Device/database.txt", "r");
+
+    if (file == NULL)
+    {
+       qInfo("error reading the db file. exiting\n");
+       exit(1);
+    }
+
+    for (int i = 0; i < MAX_SESSIONS; i++)
+    {
+        char* temp = (char*) malloc(200);
+
+        if (fgets(temp, 200, file) != NULL)
+        {
+            int id, st;
+            float intensity, sg;
+
+            sscanf(temp, "%d %f %d %f", &id, &sg, &st, &intensity);
+
+            savedSessions[i] = new Session(id, sg, st, intensity);
+            delete temp;
+            continue;
+        }
+
+        delete temp;
+        break;
+    }
+
+    fclose(file);
+}
+
+void MainWindow::saveSessions()
+{
+    FILE *file;
+    file = fopen("/home/student/Desktop/prj/3004-group/CES-Device/database.txt", "w");
+
+    //clear contents of db file
+
+    for (int i = 0; i < MAX_SESSIONS; i++)
+    {
+        //write the session from array to file
+
+        fputs(savedSessions[i]->getRecord(), file);
+        fputs("\n", file);
+    }
+    fclose(file);
+
+}
+
+void MainWindow::initSlots()
+{
+    connect(ui->loadButton, SIGNAL(released()) , this, SLOT (loadSession()));
+    connect(ui->saveButton, SIGNAL(released()) , this, SLOT (saveSession()));
+
+    connect(ui->PowerButton, SIGNAL (pressed()) , this, SLOT (power_pressed()));
+    connect(ui->PowerButton, SIGNAL (released()) , this, SLOT (power_released()));
+
+    connect(ui->StartButton, SIGNAL (released()) , this, SLOT (startButton()));
+
+    connect(ui->earButtonStrong, SIGNAL (released()) , this, SLOT (earlobeStrongButton()));
+
+    connect(ui->earButtonWeak, SIGNAL (released()) , this, SLOT (earlobeWeakButton()));
+
+    connect(ui->detachEars, SIGNAL (released()) , this, SLOT (earlobeDetachButton()));
+
+    connect(ui->detachEars, SIGNAL (released()) , this, SLOT (earlobeDetachButton()));
+
+    connect(incTimer, SIGNAL (timeout()), this, SLOT (increaseTime()));
+    connect(batteryTimer, SIGNAL (timeout()),this, SLOT (drainBattery()));
+    connect(softOffTimer, SIGNAL (timeout()),this, SLOT (softOffTimed()));
+    connect(noSessionTimer, SIGNAL(timeout()),this, SLOT (powerDown()));
+
+}
+
 
 
 MainWindow::~MainWindow()
