@@ -20,6 +20,10 @@ public:
     QTimer *softOffTimer;
     QTimer *noSessionTimer;
 
+    QTimer *incTimer;
+    int timeSinceStart = 0;
+
+
 
 private:
     Ui::MainWindow *ui;
@@ -32,6 +36,10 @@ private:
     int softOffRow;
     bool powerStatus;
 
+
+    quint64 mLastPressTime=0;
+    static const quint64 MY_LONG_PRESS_THRESHOLD=1000;
+
 public slots:
     void powerClickedHeld();
     void drainBattery();
@@ -42,6 +50,11 @@ public slots:
     void earlobeStrongButton();
     void earlobeDetachButton();
     void powerDown();
+
+    void increaseTime();
+
+    void power_pressed();
+    void power_released();
 
 signals:
 

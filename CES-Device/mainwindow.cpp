@@ -2,6 +2,11 @@
 #include "ui_mainwindow.h"
 #include "Session.h"
 #include <QDebug>
+#include <QTapAndHoldGesture>
+
+#include <QDateTime>
+
+
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -10,12 +15,8 @@ MainWindow::MainWindow(QWidget *parent)
     ui->setupUi(this);
 
 
-    connect(ui->PowerButton, SIGNAL (pressed()) , this, SLOT (powerClickedHeld()));
-    connect(ui->PowerButton, SIGNAL (released()) , this, SLOT (softOffFromButton()));
-
-
-
-
+    connect(ui->PowerButton, SIGNAL (pressed()) , this, SLOT (power_pressed()));
+    connect(ui->PowerButton, SIGNAL (released()) , this, SLOT (power_released()));
 
     connect(ui->StartButton, SIGNAL (released()) , this, SLOT (startButton()));
 
@@ -25,12 +26,17 @@ MainWindow::MainWindow(QWidget *parent)
 
     connect(ui->detachEars, SIGNAL (released()) , this, SLOT (earlobeDetachButton()));
 
+    this->incTimer = new QTimer(this);
     this->batteryTimer = new QTimer(this);
     this->softOffTimer = new QTimer(this);
     this->noSessionTimer = new QTimer(this);
+    connect(incTimer, SIGNAL (timeout()), this, SLOT (increaseTime()));
     connect(batteryTimer, SIGNAL (timeout()),this, SLOT (drainBattery()));
     connect(softOffTimer, SIGNAL (timeout()),this, SLOT (softOffTimed()));
     connect(noSessionTimer, SIGNAL(timeout()),this, SLOT (powerDown()));
+
+
+    this->incTimer->start(1000); // Every 1000
 
 
     //set batteryPower to 100
@@ -58,6 +64,11 @@ MainWindow::MainWindow(QWidget *parent)
 }
 
 //SHOULD TURN OFF IN TWO MINS IF NO SESSION SELECTED
+
+
+void MainWindow::increaseTime(){
+    timeSinceStart++;
+}
 
 
 void MainWindow::powerDown(){
@@ -131,7 +142,7 @@ void MainWindow::drainBattery(){
 
 //call the softoffbased on button press
 void MainWindow::softOffFromButton(){
-    if (this->inSession == true){//only call if inSession, otherwise softOff not required
+        //only call if inSession, otherwise softOff not required
         this->softOffRow = 0;
         ui->SessionType_2->setCurrentRow(this->softOffRow,QItemSelectionModel::Select);
         for (int i = 0; i< 8; i++){//start 5 timers (this will be a bit hacky, but it works.
@@ -142,7 +153,6 @@ void MainWindow::softOffFromButton(){
         this->powerDown();
         this->softOffRow = 0;
         ui->powerLabel->setText("POWER: OFF");
-    }
 }
 
 void MainWindow::softOffTimed(){
@@ -172,6 +182,50 @@ void MainWindow::powerClickedHeld(){ //we can call this a hard off
         this->powerDown();
     }
 }
+
+
+void MainWindow::power_pressed(){
+    mLastPressTime = timeSinceStart;
+}
+
+void MainWindow::power_released(){
+    qDebug() << "in power_released()";
+    qDebug() << mLastPressTime;
+    if (timeSinceStart - mLastPressTime > 1){
+        qDebug() << "Power was held";
+        // It was held, so this is a power on or a power off
+
+        if (this->powerStatus == false){//if trying to turn on
+            if (this->batteryLevel >0){
+                ui->powerLabel->setText("POWER: ON");
+               // batteryTimer->start(1000); //starts the battery drain THIS SHOULD PROBABLY ONLY DRAIN WITH SESSION
+                this->powerStatus = true;
+                this->inSession= false;
+                this->noSessionTimer->start(120000);
+            }else{
+                ui->powerLabel->setText("NO CHARGE");
+            }
+        }else{//if trying to turn off
+
+            this->powerDown();
+        }
+    }else{
+        qDebug() << "Power was clicked";
+
+        // Button was clicked, not held
+
+        // Are we in a session already?
+        if (this->inSession == true){
+            softOffFromButton();
+            qDebug() << "Called softOffFromButton, we were already in a session";
+        }else{
+            // Time to select a session
+
+
+        }
+    }
+}
+
 
 MainWindow::~MainWindow()
 {
