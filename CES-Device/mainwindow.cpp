@@ -30,6 +30,7 @@ MainWindow::MainWindow(QWidget *parent)
     this->noSessionTimer = new QTimer(this);
     this->sessionTimer = new QTimer(this);
     this->cesBlinkTimer = new QTimer(this);
+    this->noConnectBlinkTimer = new QTimer(this);
     this->incTimer->start(1000); // Every 1000
 
     //set batteryPower to 100
@@ -101,11 +102,51 @@ void MainWindow::powerDown(){
 
 void MainWindow::startButton(){
     if (this->powerStatus){
-        this->inSession = true;
         this->noSessionTimer->stop();
         this->sessionTimer->start(curSession->getSG() * 1000);
         ui->CESModeLight->setCheckable(true);
         this->cesBlinkTimer->start(500);
+        //GREAT CONNECTION
+        if (this->connectionStrength == 1){
+            ui->SessionType_2->setCurrentRow(0, QItemSelectionModel::Select);
+            ui->SessionType_2->setCurrentRow(1, QItemSelectionModel::Select);
+            ui->SessionType_2->setCurrentRow(2, QItemSelectionModel::Select);
+            this->inSession = true;
+        }
+        //MID CONNECTION
+        if (this->connectionStrength < 1 && this->connectionStrength > 0.5 ){
+            ui->SessionType_2->setCurrentRow(3, QItemSelectionModel::Select);
+            ui->SessionType_2->setCurrentRow(4, QItemSelectionModel::Select);
+            ui->SessionType_2->setCurrentRow(5, QItemSelectionModel::Select);
+            this->inSession = true;
+        }
+        //NO CONNECTION
+        else{
+            this->noConnectBlinkTimer->start(500);
+        }
+    }
+}
+
+void MainWindow::blinkNoConnect(){
+    //qDebug()<< this->connectionStrength;
+    if (this->connectionStrength < 0.65){
+        //qDebug() << "does this work?";
+        if (!isBlinkNoConnect){//if false, select rows
+            ui->SessionType_2->setCurrentRow(6, QItemSelectionModel::Select);
+            ui->SessionType_2->setCurrentRow(7, QItemSelectionModel::Select);
+        }
+        else{//if true, deselect rows
+            ui->SessionType_2->setCurrentRow(6, QItemSelectionModel::Deselect);
+            ui->SessionType_2->setCurrentRow(7, QItemSelectionModel::Deselect);
+        }
+        isBlinkNoConnect = !isBlinkNoConnect;
+    }
+    else{//if the connection strength has been changed
+        //qDebug() << "this doesnt work";
+        this->noConnectBlinkTimer->stop();
+        ui->SessionType_2->setCurrentRow(6, QItemSelectionModel::Deselect);
+        ui->SessionType_2->setCurrentRow(7, QItemSelectionModel::Deselect);
+        this->isBlinkNoConnect = false;
     }
 }
 
@@ -460,6 +501,7 @@ void MainWindow::initSlots()
     connect(noSessionTimer, SIGNAL(timeout()),this, SLOT (powerDown()));
     connect(sessionTimer, SIGNAL(timeout()), this, SLOT(softOffFromButton()));
     connect(cesBlinkTimer, SIGNAL(timeout()), this, SLOT(blinkCESMode()));
+    connect(noConnectBlinkTimer, SIGNAL(timeout()), this, SLOT(blinkNoConnect()));
 
 
 }
