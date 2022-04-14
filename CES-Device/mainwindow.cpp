@@ -105,7 +105,6 @@ void MainWindow::startButton(){
     if (this->powerStatus){
         ui->CESModeLight->setCheckable(true);
         this->cesBlinkTimer->start(500);
-        this->ui->loadButton->setEnabled(false);
         //GREAT CONNECTION
         if (this->connectionStrength == 1){
             ui->SessionType_2->setCurrentRow(0, QItemSelectionModel::Select);
@@ -114,6 +113,7 @@ void MainWindow::startButton(){
             this->inSession = true;
             this->sessionTimer->start(curSession->getSG() * 1000);
             this->noSessionTimer->stop();
+            this->ui->loadButton->setEnabled(false);
         }
         //MID CONNECTION
         if (this->connectionStrength < 1 && this->connectionStrength > 0.5 ){
@@ -123,6 +123,7 @@ void MainWindow::startButton(){
             this->inSession = true;
             this->sessionTimer->start(curSession->getSG() * 1000);
             this->noSessionTimer->stop();
+            this->ui->loadButton->setEnabled(false);
         }
         //NO CONNECTION
         else{
