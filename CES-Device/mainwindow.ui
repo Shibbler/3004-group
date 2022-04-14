@@ -365,6 +365,9 @@
       <height>61</height>
      </rect>
     </property>
+    <property name="selectionBehavior">
+     <enum>QAbstractItemView::SelectItems</enum>
+    </property>
     <item>
      <property name="text">
       <string>20 Minute</string>
@@ -504,6 +507,9 @@
      <string>CES Mode Light</string>
     </property>
     <property name="checkable">
+     <bool>false</bool>
+    </property>
+    <property name="checked">
      <bool>false</bool>
     </property>
    </widget>
