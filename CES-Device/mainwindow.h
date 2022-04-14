@@ -26,6 +26,7 @@ public:
     QTimer *noSessionTimer;
     QTimer *sessionTimer;
     QTimer *incTimer;
+    QTimer *cesBlinkTimer;
     int timeSinceStart = 0;
 
 
@@ -44,6 +45,7 @@ private:
     float curCustomTime = 0;
     int sessionTypeRow = 1;
     int intensityRow = 1;
+    int numBlinks = 0;
     void loadSessions();
     void saveSessions();
     void initSlots();
@@ -67,6 +69,7 @@ public slots:
     void saveSession();
     void increaseTime();
     void updateCustomTime();
+    void blinkCESMode();
 
     void upButtonPressed();
     void downButtonPressed();

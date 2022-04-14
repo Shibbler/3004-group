@@ -29,6 +29,7 @@ MainWindow::MainWindow(QWidget *parent)
     this->softOffTimer = new QTimer(this);
     this->noSessionTimer = new QTimer(this);
     this->sessionTimer = new QTimer(this);
+    this->cesBlinkTimer = new QTimer(this);
     this->incTimer->start(1000); // Every 1000
 
     //set batteryPower to 100
@@ -103,9 +104,20 @@ void MainWindow::startButton(){
         this->inSession = true;
         this->noSessionTimer->stop();
         this->sessionTimer->start(curSession->getSG() * 1000);
+        ui->CESModeLight->setCheckable(true);
+        this->cesBlinkTimer->start(500);
+    }
+}
 
 
-        //should start the currently loaded session
+void MainWindow::blinkCESMode(){
+    if (this->numBlinks < 8){
+        ui->CESModeLight->setChecked(!ui->CESModeLight->isChecked());
+        this->numBlinks++;
+    }else{
+        this->cesBlinkTimer->stop();
+        this->numBlinks = 0;
+        ui->CESModeLight->setCheckable(false);
     }
 }
 
@@ -167,6 +179,7 @@ void MainWindow::earlobeDetachButton(){
         ui->SessionType_2->setCurrentRow(6, QItemSelectionModel::Select);
         ui->SessionType_2->setCurrentRow(7, QItemSelectionModel::Select);
         connectivityHighlight(2);
+        this->inSession=false;
     }
 }
 
@@ -446,6 +459,7 @@ void MainWindow::initSlots()
     connect(softOffTimer, SIGNAL (timeout()),this, SLOT (softOffTimed()));
     connect(noSessionTimer, SIGNAL(timeout()),this, SLOT (powerDown()));
     connect(sessionTimer, SIGNAL(timeout()), this, SLOT(softOffFromButton()));
+    connect(cesBlinkTimer, SIGNAL(timeout()), this, SLOT(blinkCESMode()));
 
 
 }
