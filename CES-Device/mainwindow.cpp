@@ -44,7 +44,7 @@ MainWindow::MainWindow(QWidget *parent)
     initSlots();
 
     //TESTING
-    curSession = new Session(0,20.0,30,0.0, 1.0);
+    curSession = new Session(0,20.0,30,100.0, 1.0);
     //this->connectionStrength = 1; //to model full connection
 
     Session *toCopy = new Session(curSession);
@@ -107,6 +107,7 @@ void MainWindow::startButton(){
         this->sessionTimer->start(curSession->getSG() * 1000);
         ui->CESModeLight->setCheckable(true);
         this->cesBlinkTimer->start(500);
+        this->ui->loadButton->setEnabled(false);
         //GREAT CONNECTION
         if (this->connectionStrength == 1){
             ui->SessionType_2->setCurrentRow(0, QItemSelectionModel::Select);
@@ -262,6 +263,7 @@ void MainWindow::drainBattery(){
 void MainWindow::softOffFromButton(){
         //only call if inSession, otherwise softOff not required
         this->sessionTimer->stop();
+        this->ui->loadButton->setEnabled(true);
 
         for (int i = 0; i< 8; i++){
             ui->SessionType_2->setCurrentRow(i,QItemSelectionModel::Deselect);
@@ -423,7 +425,6 @@ void MainWindow::setSelections()
     ui->SessionGroup->setCurrentRow(ui->SessionGroup->currentRow(), QItemSelectionModel::Deselect);
     ui->SessionType->setCurrentRow(ui->SessionType->currentRow(), QItemSelectionModel::Deselect);
     ui->SessionType_2->setCurrentRow(ui->SessionType_2->currentRow(), QItemSelectionModel::Deselect);
-
     if (powerStatus)
     {
         if (curSession->getSG() < TWENTY_MIN + 1.0 && curSession->getSG() > TWENTY_MIN - 1.0)

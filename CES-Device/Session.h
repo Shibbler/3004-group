@@ -1,11 +1,11 @@
 #ifndef SESSION_H
 #define SESSION_H
 
-//define session group constants. all session groups start with a 2
+//define session group constants.
 #define TWENTY_MIN 20.0
 #define FOURTY_FIVE_MIN 45.0
 
-//define session type constants. all session types start with a 3
+//define session type constants.
 #define DELTA 30
 #define THETA 31
 #define ALPHA 32
