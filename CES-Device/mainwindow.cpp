@@ -221,6 +221,7 @@ void MainWindow::earlobeDetachButton(){
         ui->SessionType_2->setCurrentRow(7, QItemSelectionModel::Select);
         connectivityHighlight(2);
         this->inSession=false;
+        this->sessionTimer->stop();
     }
 }
 
