@@ -3,12 +3,11 @@
 #include "Session.h"
 #include <QDebug>
 #include <QTapAndHoldGesture>
-
 #include <QDateTime>
 #include <stdio.h>
 #include <QSlider>
-
 #include <unistd.h>
+
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -46,7 +45,7 @@ MainWindow::MainWindow(QWidget *parent)
 
     //TESTING
     curSession = new Session(0,20.0,30,0.0, 1.0);
-    this->connectionStrength = 1; //to model full connection
+    //this->connectionStrength = 1; //to model full connection
 
     Session *toCopy = new Session(curSession);
 
@@ -61,6 +60,7 @@ void MainWindow::loadSession(){
         delete curSession;
         this->curSession = new Session(this->savedSessions[ui->sessionStore->currentIndex()]); //might want to use model column
         this->curSession->id = 0;
+        setSelections();
     }
 }
 
@@ -93,6 +93,7 @@ void MainWindow::increaseTime(){
 
 void MainWindow::powerDown(){
     this->powerStatus=false;
+    this->setSelections();
     this->noSessionTimer->stop();
     this->sessionTimer->stop();
     ui->powerLabel->setText("POWER: OFF");
@@ -227,6 +228,9 @@ void MainWindow::earlobeDetachButton(){
 void MainWindow::updateCustomTime(){
     this->curCustomTime = ui->UserDesSlider->sliderPosition();
     ui->timeLabel->setText(QString::number(this->curCustomTime));
+    if (ui->SessionGroup->currentRow() == 2)
+        curSession->setSG((float)ui->UserDesSlider->sliderPosition());
+
     qDebug() << this->curCustomTime;
     if (this->sessionGroupRow == 2){//custom time is selected
         this->curSession->setSG(this->curCustomTime);
@@ -306,8 +310,9 @@ void MainWindow::power_released(){
         if (this->powerStatus == false){//if trying to turn on
             if (this->batteryLevel >0){
                 ui->powerLabel->setText("POWER: ON");
-               // batteryTimer->start(1000); //starts the battery drain THIS SHOULD PROBABLY ONLY DRAIN WITH SESSION
+                // batteryTimer->start(1000); //starts the battery drain THIS SHOULD PROBABLY ONLY DRAIN WITH SESSION
                 this->powerStatus = true;
+                setSelections();
                 this->inSession= false;
                 this->noSessionTimer->start(120000);
             }else{
@@ -409,6 +414,89 @@ void MainWindow::downButtonPressed(){
                     case 3: this->curSession->setST(ONE_HUNDRED); this->curSession->setHertz(ONE_HUNDRED_HZ);
                 }
             }
+        }
+    }
+}
+
+void MainWindow::setSelections()
+{
+    ui->SessionGroup->setCurrentRow(ui->SessionGroup->currentRow(), QItemSelectionModel::Deselect);
+    ui->SessionType->setCurrentRow(ui->SessionType->currentRow(), QItemSelectionModel::Deselect);
+    ui->SessionType_2->setCurrentRow(ui->SessionType_2->currentRow(), QItemSelectionModel::Deselect);
+
+    if (powerStatus)
+    {
+        if (curSession->getSG() < TWENTY_MIN + 1.0 && curSession->getSG() > TWENTY_MIN - 1.0)
+        {
+            ui->SessionGroup->setCurrentRow(0, QItemSelectionModel::Select);
+            sessionGroupRow = 0;
+        }
+        else if (curSession->getSG() < FOURTY_FIVE_MIN + 1.0 && curSession->getSG() > FOURTY_FIVE_MIN - 1.0)
+        {
+            ui->SessionGroup->setCurrentRow(1, QItemSelectionModel::Select);
+            sessionGroupRow = 1;
+        }
+        else
+        {
+            sessionGroupRow = 2;
+            ui->SessionGroup->setCurrentRow(2, QItemSelectionModel::Select);
+            ui->UserDesSlider->setSliderPosition(curSession->getSG());
+            this->curCustomTime = curSession->getSG();
+            ui->timeLabel->setText(QString::number(curSession->getSG()));
+        }
+
+
+        switch (this->curSession->getST())
+        {
+            case DELTA:       ui->SessionType->setCurrentRow(0, QItemSelectionModel::Select); sessionTypeRow = 0;
+            break;
+            case THETA:       ui->SessionType->setCurrentRow(1, QItemSelectionModel::Select); sessionTypeRow = 1;
+            break;
+            case ALPHA:       ui->SessionType->setCurrentRow(2, QItemSelectionModel::Select); sessionTypeRow = 2;
+            break;
+            case ONE_HUNDRED: ui->SessionType->setCurrentRow(3, QItemSelectionModel::Select); sessionTypeRow = 3;
+            break;
+        }
+
+        if (curSession->getIntensity() < 1.1 && curSession->getSG() > 0.9)
+        {
+            ui->SessionType_2->setCurrentRow(7, QItemSelectionModel::Select);
+            this->intensityRow = 7;
+        }
+        else if (curSession->getIntensity() < 2.1 && curSession->getSG() > 1.9)
+        {
+            ui->SessionType_2->setCurrentRow(6, QItemSelectionModel::Select);
+            this->intensityRow = 6;
+        }
+        else if (curSession->getIntensity() < 3.1 && curSession->getSG() > 2.9)
+        {
+            ui->SessionType_2->setCurrentRow(5, QItemSelectionModel::Select);
+            this->intensityRow = 5;
+        }
+        else if (curSession->getIntensity() < 4.1 && curSession->getSG() > 3.9)
+        {
+            ui->SessionType_2->setCurrentRow(4, QItemSelectionModel::Select);
+            this->intensityRow = 4;
+        }
+        else if (curSession->getIntensity() < 5.1 && curSession->getSG() > 4.9)
+        {
+            ui->SessionType_2->setCurrentRow(3, QItemSelectionModel::Select);
+            this->intensityRow = 3;
+        }
+        else if (curSession->getIntensity() < 6.1 && curSession->getSG() > 5.9)
+        {
+            ui->SessionType_2->setCurrentRow(2, QItemSelectionModel::Select);
+            this->intensityRow = 2;
+        }
+        else if (curSession->getIntensity() < 7.1 && curSession->getSG() > 6.9)
+        {
+            ui->SessionType_2->setCurrentRow(1, QItemSelectionModel::Select);
+            this->intensityRow = 1;
+        }
+        else if (curSession->getIntensity() < 8.1 && curSession->getSG() > 7.9)
+        {
+            ui->SessionType_2->setCurrentRow(0, QItemSelectionModel::Select);
+            this->intensityRow = 0;
         }
     }
 }
