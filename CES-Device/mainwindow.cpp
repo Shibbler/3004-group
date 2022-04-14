@@ -33,6 +33,8 @@ MainWindow::MainWindow(QWidget *parent)
     this->noConnectBlinkTimer = new QTimer(this);
     this->incTimer->start(1000); // Every 1000
 
+    this->flashingConnectionTimer = new QTimer(this);
+
     //set batteryPower to 100
     this->batteryLevel = 100.0;
     //set in session bool to false
@@ -243,6 +245,29 @@ void MainWindow::drainBattery(){
 
     //qDebug() << amountToReduceBattery;
     if (inSession && powerStatus){//if we are in a session AND the power is on
+        this->flashingConnectionTimer->start();
+        if (this->batteryLevel < 33){
+            qDebug()<< "Battery Level less than 33";
+            this->batteryStatus = 0;
+        }
+        else if(this->batteryLevel < 34 && this->batteryLevel > 32 && !this->lowBatteryReached){
+            this->batteryStatus = 1;
+            qDebug()<< "Battery Level at 33";
+            this->lowBatteryReached = true;
+        }
+        else if(this->batteryLevel <= 66 && !this->midBatteryReached){
+            qDebug()<< "Battery Level at 66";
+            this->batteryStatus = 2;
+            this->midBatteryReached = true;
+        }
+        else if(this->batteryLevel == 100){
+            qDebug()<< "Battery Level at 100";
+           this->batteryStatus = 3;
+        }
+        else{
+            this->batteryStatus = -1;
+        }
+
         this->batteryLevel -= amountToReduceBattery;
         ui->batteryLabel_2->setText(QString::number(this->batteryLevel));
         if (this->batteryLevel <= 0){//if battery is reduced such that there is no more charge
@@ -252,6 +277,51 @@ void MainWindow::drainBattery(){
             ui->batteryLabel_2->setText("0");
         }
     }
+}
+
+void MainWindow::flashConnections(){
+    if (batteryStatus!=-1 && !needToDeselect){//if false, select rows
+        this->needToDeselect = true;
+        switch(this->batteryStatus){
+            case 0:
+                ui->SessionType_2->setCurrentRow(7, QItemSelectionModel::Select);
+            break;
+            case 1:
+                ui->SessionType_2->setCurrentRow(6, QItemSelectionModel::Select);
+                ui->SessionType_2->setCurrentRow(7, QItemSelectionModel::Select);
+            break;
+            case 2:
+                ui->SessionType_2->setCurrentRow(3, QItemSelectionModel::Select);
+                ui->SessionType_2->setCurrentRow(4, QItemSelectionModel::Select);
+                ui->SessionType_2->setCurrentRow(5, QItemSelectionModel::Select);
+                ui->SessionType_2->setCurrentRow(6, QItemSelectionModel::Select);
+                ui->SessionType_2->setCurrentRow(7, QItemSelectionModel::Select);
+            break;
+            case 3:
+                ui->SessionType_2->setCurrentRow(0, QItemSelectionModel::Select);
+                ui->SessionType_2->setCurrentRow(1, QItemSelectionModel::Select);
+                ui->SessionType_2->setCurrentRow(2, QItemSelectionModel::Select);
+                ui->SessionType_2->setCurrentRow(3, QItemSelectionModel::Select);
+                ui->SessionType_2->setCurrentRow(4, QItemSelectionModel::Select);
+                ui->SessionType_2->setCurrentRow(5, QItemSelectionModel::Select);
+                ui->SessionType_2->setCurrentRow(6, QItemSelectionModel::Select);
+                ui->SessionType_2->setCurrentRow(7, QItemSelectionModel::Select);
+            break;
+        }
+    }
+    else if (this->needToDeselect || this->batteryStatus == 0 || this->batteryStatus == 1){//if true, deselect rows
+
+        ui->SessionType_2->setCurrentRow(0, QItemSelectionModel::Deselect);
+        ui->SessionType_2->setCurrentRow(1, QItemSelectionModel::Deselect);
+        ui->SessionType_2->setCurrentRow(2, QItemSelectionModel::Deselect);
+        ui->SessionType_2->setCurrentRow(3, QItemSelectionModel::Deselect);
+        ui->SessionType_2->setCurrentRow(4, QItemSelectionModel::Deselect);
+        ui->SessionType_2->setCurrentRow(5, QItemSelectionModel::Deselect);
+        ui->SessionType_2->setCurrentRow(6, QItemSelectionModel::Deselect);
+        ui->SessionType_2->setCurrentRow(7, QItemSelectionModel::Deselect);
+        this->needToDeselect = false;
+    }
+    this->flashingConnectionTimer->stop();
 }
 
 //call the softoffbased on button press
@@ -502,6 +572,7 @@ void MainWindow::initSlots()
     connect(sessionTimer, SIGNAL(timeout()), this, SLOT(softOffFromButton()));
     connect(cesBlinkTimer, SIGNAL(timeout()), this, SLOT(blinkCESMode()));
     connect(noConnectBlinkTimer, SIGNAL(timeout()), this, SLOT(blinkNoConnect()));
+    connect(flashingConnectionTimer,SIGNAL(timeout()),this,SLOT(flashConnections()));
 
 
 }

@@ -28,6 +28,7 @@ public:
     QTimer *incTimer;
     QTimer *cesBlinkTimer;
     QTimer *noConnectBlinkTimer;
+    QTimer *flashingConnectionTimer;
     int timeSinceStart = 0;
 
 
@@ -48,6 +49,11 @@ private:
     int intensityRow = 1;
     int numBlinks = 0;
     bool isBlinkNoConnect = false;
+    bool midBatteryReached = false;
+    bool lowBatteryReached = false;
+    bool needToDeselect =false;
+
+    int batteryStatus = 3;
     void loadSessions();
     void saveSessions();
     void initSlots();
@@ -75,7 +81,7 @@ public slots:
     void blinkNoConnect();
     void upButtonPressed();
     void downButtonPressed();
-
+    void flashConnections();
     void power_pressed();
     void power_released();
 
