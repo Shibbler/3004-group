@@ -109,6 +109,26 @@ void MainWindow::startButton(){
     }
 }
 
+void MainWindow::connectivityHighlight(int index){
+    if (index == 0) {
+         ui->earButtonStrong->setVisible(false);
+         ui->earButtonWeak->setVisible(true);
+         ui->detachEars->setVisible(true);
+    }
+    else if (index == 1){
+         ui->earButtonStrong->setVisible(true);
+         ui->earButtonWeak->setVisible(false);
+         ui->detachEars->setVisible(true);
+    }
+    else {
+        ui->earButtonStrong->setVisible(true);
+        ui->earButtonWeak->setVisible(true);
+        ui->detachEars->setVisible(false);
+
+    }
+
+}
+
 void MainWindow::earlobeStrongButton(){
     if (this->powerStatus){
         this->connectionStrength = 1;
@@ -119,6 +139,7 @@ void MainWindow::earlobeStrongButton(){
         ui->SessionType_2->setCurrentRow(1, QItemSelectionModel::Select);
         ui->SessionType_2->setCurrentRow(2, QItemSelectionModel::Select);
         qDebug() << "StrongConnection Pressed";
+        connectivityHighlight(0);
     }
 
 }
@@ -132,6 +153,7 @@ void MainWindow::earlobeWeakButton(){
         ui->SessionType_2->setCurrentRow(3, QItemSelectionModel::Select);
         ui->SessionType_2->setCurrentRow(4, QItemSelectionModel::Select);
         ui->SessionType_2->setCurrentRow(5, QItemSelectionModel::Select);
+        connectivityHighlight(1);
     }
 }
 
@@ -144,6 +166,7 @@ void MainWindow::earlobeDetachButton(){
 
         ui->SessionType_2->setCurrentRow(6, QItemSelectionModel::Select);
         ui->SessionType_2->setCurrentRow(7, QItemSelectionModel::Select);
+        connectivityHighlight(2);
     }
 }
 
