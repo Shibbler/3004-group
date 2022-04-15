@@ -62,6 +62,7 @@ private:
     bool saveInSession = false;
     void connectivityHighlight(int);
     void setSelections();
+    void batteryCheck();
 
 
     quint64 mLastPressTime=0;

@@ -94,8 +94,13 @@ void MainWindow::increaseTime(){
 }
 
 void MainWindow::powerDown(){
+    this->midBatteryReached = false;
+    this->lowBatteryReached = false;
+    this->needToDeselect =false;
+    this->flashedHundo = false;
     this->powerStatus=false;
     this->setSelections();
+    this->flashingConnectionTimer->stop();
     this->noSessionTimer->stop();
     this->sessionTimer->stop();
     ui->powerLabel->setText("POWER: OFF");
@@ -106,6 +111,7 @@ void MainWindow::powerDown(){
 void MainWindow::startButton(){
     if (this->powerStatus){
         ui->CESModeLight->setCheckable(true);
+//        this->flashingConnectionTimer->start();
         this->cesBlinkTimer->start(500);
         //GREAT CONNECTION
         if (this->connectionStrength == 1){
@@ -244,6 +250,34 @@ void MainWindow::updateCustomTime(){
     }
 }
 
+void MainWindow::batteryCheck(){
+    //this->flashingConnectionTimer->start();
+    if (this->batteryLevel < 33){
+        qDebug()<< "Battery Level less than 33";
+        this->batteryStatus = 0;
+    }
+    else if(this->batteryLevel < 34 && this->batteryLevel > 32 && !this->lowBatteryReached){
+        this->batteryStatus = 1;
+        qDebug()<< "Battery Level at 33";
+        this->lowBatteryReached = true;
+    }
+    else if(this->batteryLevel <= 66 && !this->midBatteryReached){
+        qDebug()<< "Battery Level at 66";
+        this->batteryStatus = 2;
+        this->midBatteryReached = true;
+
+    }
+    else if(this->batteryLevel == 100 && !flashedHundo){
+        qDebug()<< "Battery Level at 100";
+        flashedHundo = true;
+        this->batteryStatus = 3;
+    }
+    else{
+        this->batteryStatus = -1;
+    }
+
+}
+
 //function to be called for battery drainage (should be timed)
 void MainWindow::drainBattery(){
     //battery drains: Hz/100 *connection (3 possible values (0.33, 0.66,1)) * lengthOfSession/60
@@ -253,37 +287,13 @@ void MainWindow::drainBattery(){
     float amountToReduceBattery= ((curSession->getHertz()/100) * (this->connectionStrength +(this->curSession->getIntensity()/10)) * (this->curSession->getSG()/60));
     //qDebug() << amountToReduceBattery;
     if (inSession && powerStatus){//if we are in a session AND the power is on
-        this->flashConnections();
-        //this->flashingConnectionTimer->start();
-        if (this->batteryLevel < 33){
-            qDebug()<< "Battery Level less than 33";
-            this->batteryStatus = 0;
-        }
-        else if(this->batteryLevel < 34 && this->batteryLevel > 32 && !this->lowBatteryReached){
-            this->batteryStatus = 1;
-            qDebug()<< "Battery Level at 33";
-            this->lowBatteryReached = true;
-        }
-        else if(this->batteryLevel <= 66 && !this->midBatteryReached){
-            qDebug()<< "Battery Level at 66";
-            this->batteryStatus = 2;
-            this->midBatteryReached = true;
-
-        }
-        else if(this->batteryLevel == 100 && !flashedHundo){
-            qDebug()<< "Battery Level at 100";
-            flashedHundo = true;
-           this->batteryStatus = 3;
-        }
-        else{
-            this->batteryStatus = -1;
-        }
-
         this->batteryLevel -= amountToReduceBattery;
         ui->batteryLabel_2->setText(QString::number(this->batteryLevel));
         if (this->batteryLevel <= 0){//if battery is reduced such that there is no more charge
             this->powerStatus = false;
             ui->powerLabel->setText("POWER: OFF");
+            this->flashingConnectionTimer->stop();
+            this->inSession = false;
             this->noSessionTimer->stop();
             ui->batteryLabel_2->setText("0");
         }
@@ -292,17 +302,34 @@ void MainWindow::drainBattery(){
 }
 
 void MainWindow::flashConnections(){
-    if (batteryStatus!=-1 && !needToDeselect){//if false, select rows
+    batteryCheck();
+    if (batteryStatus!=-1 && !needToDeselect){
         this->needToDeselect = true;
         switch(this->batteryStatus){
             case 0:
+                ui->SessionType_2->setCurrentRow(0, QItemSelectionModel::Deselect);
+                ui->SessionType_2->setCurrentRow(1, QItemSelectionModel::Deselect);
+                ui->SessionType_2->setCurrentRow(2, QItemSelectionModel::Deselect);
+                ui->SessionType_2->setCurrentRow(3, QItemSelectionModel::Deselect);
+                ui->SessionType_2->setCurrentRow(4, QItemSelectionModel::Deselect);
+                ui->SessionType_2->setCurrentRow(5, QItemSelectionModel::Deselect);
+                ui->SessionType_2->setCurrentRow(6, QItemSelectionModel::Deselect);
                 ui->SessionType_2->setCurrentRow(7, QItemSelectionModel::Select);
             break;
             case 1:
+                ui->SessionType_2->setCurrentRow(0, QItemSelectionModel::Deselect);
+                ui->SessionType_2->setCurrentRow(1, QItemSelectionModel::Deselect);
+                ui->SessionType_2->setCurrentRow(2, QItemSelectionModel::Deselect);
+                ui->SessionType_2->setCurrentRow(3, QItemSelectionModel::Deselect);
+                ui->SessionType_2->setCurrentRow(4, QItemSelectionModel::Deselect);
+                ui->SessionType_2->setCurrentRow(5, QItemSelectionModel::Deselect);
                 ui->SessionType_2->setCurrentRow(6, QItemSelectionModel::Select);
                 ui->SessionType_2->setCurrentRow(7, QItemSelectionModel::Select);
             break;
             case 2:
+                ui->SessionType_2->setCurrentRow(0, QItemSelectionModel::Deselect);
+                ui->SessionType_2->setCurrentRow(1, QItemSelectionModel::Deselect);
+                ui->SessionType_2->setCurrentRow(2, QItemSelectionModel::Deselect);
                 ui->SessionType_2->setCurrentRow(3, QItemSelectionModel::Select);
                 ui->SessionType_2->setCurrentRow(4, QItemSelectionModel::Select);
                 ui->SessionType_2->setCurrentRow(5, QItemSelectionModel::Select);
@@ -321,7 +348,7 @@ void MainWindow::flashConnections(){
             break;
         }
     }
-    else if (this->needToDeselect || this->batteryStatus == 0 || this->batteryStatus == 1){//if true, deselect rows
+    else if (this->needToDeselect || this->batteryStatus == 0 || this->batteryStatus == 1){
 
         ui->SessionType_2->setCurrentRow(0, QItemSelectionModel::Deselect);
         ui->SessionType_2->setCurrentRow(1, QItemSelectionModel::Deselect);
@@ -333,6 +360,7 @@ void MainWindow::flashConnections(){
         ui->SessionType_2->setCurrentRow(7, QItemSelectionModel::Deselect);
         this->needToDeselect = false;
     }
+    batteryCheck();
     //this->flashingConnectionTimer->stop();
 }
 
@@ -389,8 +417,7 @@ void MainWindow::power_released(){
         if (this->powerStatus == false){//if trying to turn on
             if (this->batteryLevel >0){
                 ui->powerLabel->setText("POWER: ON");
-                this->flashConnections();
-                //this->flashingConnectionTimer->start();
+                this->flashingConnectionTimer->start(1000);
                 // batteryTimer->start(1000); //starts the battery drain THIS SHOULD PROBABLY ONLY DRAIN WITH SESSION
                 this->powerStatus = true;
                 setSelections();
