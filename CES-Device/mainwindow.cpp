@@ -251,10 +251,10 @@ void MainWindow::drainBattery(){
     //qDebug() << "First piece of math /100 = " << (curSession->getHertz()/100) << ". Second piece of math /60: " <<(this->curSession->getSG()/60) << "third piece of math: "<< (this->connectionStrength +(this->curSession->getIntensity()/10));
 
     float amountToReduceBattery= ((curSession->getHertz()/100) * (this->connectionStrength +(this->curSession->getIntensity()/10)) * (this->curSession->getSG()/60));
-
     //qDebug() << amountToReduceBattery;
     if (inSession && powerStatus){//if we are in a session AND the power is on
-        this->flashingConnectionTimer->start();
+        this->flashConnections();
+        //this->flashingConnectionTimer->start();
         if (this->batteryLevel < 33){
             qDebug()<< "Battery Level less than 33";
             this->batteryStatus = 0;
@@ -268,9 +268,11 @@ void MainWindow::drainBattery(){
             qDebug()<< "Battery Level at 66";
             this->batteryStatus = 2;
             this->midBatteryReached = true;
+
         }
-        else if(this->batteryLevel == 100){
+        else if(this->batteryLevel == 100 && !flashedHundo){
             qDebug()<< "Battery Level at 100";
+            flashedHundo = true;
            this->batteryStatus = 3;
         }
         else{
@@ -286,6 +288,7 @@ void MainWindow::drainBattery(){
             ui->batteryLabel_2->setText("0");
         }
     }
+    //this->flashingConnectionTimer->stop();
 }
 
 void MainWindow::flashConnections(){
@@ -330,7 +333,7 @@ void MainWindow::flashConnections(){
         ui->SessionType_2->setCurrentRow(7, QItemSelectionModel::Deselect);
         this->needToDeselect = false;
     }
-    this->flashingConnectionTimer->stop();
+    //this->flashingConnectionTimer->stop();
 }
 
 //call the softoffbased on button press
@@ -386,6 +389,8 @@ void MainWindow::power_released(){
         if (this->powerStatus == false){//if trying to turn on
             if (this->batteryLevel >0){
                 ui->powerLabel->setText("POWER: ON");
+                this->flashConnections();
+                //this->flashingConnectionTimer->start();
                 // batteryTimer->start(1000); //starts the battery drain THIS SHOULD PROBABLY ONLY DRAIN WITH SESSION
                 this->powerStatus = true;
                 setSelections();

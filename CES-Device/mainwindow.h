@@ -52,6 +52,7 @@ private:
     bool midBatteryReached = false;
     bool lowBatteryReached = false;
     bool needToDeselect =false;
+    bool flashedHundo = false;
 
     int batteryStatus = 3;
     void loadSessions();
