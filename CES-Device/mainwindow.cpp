@@ -30,7 +30,7 @@ MainWindow::MainWindow(QWidget *parent)
     this->sessionTimer = new QTimer(this);
     this->cesBlinkTimer = new QTimer(this);
     this->noConnectBlinkTimer = new QTimer(this);
-    this->incTimer->start(1000); // Every 1000
+    this->incTimer->start(1); // Every millisecond
 
     this->flashingConnectionTimer = new QTimer(this);
 
@@ -417,7 +417,7 @@ void MainWindow::power_pressed(){
 }
 
 void MainWindow::power_released(){
-    if (timeSinceStart - mLastPressTime >= 1){
+    if (timeSinceStart - mLastPressTime >= 1000){
         //qDebug() << "Power was held";
         // It was held, so this is a power on or a power off
 
