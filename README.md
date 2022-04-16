@@ -10,22 +10,35 @@
 
 ## Who did what in the project
 
+We all worked in close collaboration, so much of these are just areas we led, with assistance from others. We all contributed equally in terms of hours worked (whether directly coding, discussing or assisting each other), and view this project as a result of equally shared work.
+
 Owen Allen
-- Use Cases
-- Use Case Diagram
-- Traceability Matrix
-- Power On Off Mechanics
+    - Use Cases
+    - Use Case Diagram
+    - Traceability Matrix
+    - Power On Off Mechanics
+    - Press and Release timing
+    - README.md
 
-- Vivek Chand
-    -
-    -
-- Lucas Colwell
-    -
-    -
-- Max Dobrei
-    -
-    -
+Vivek Chand
+    - State Diagram
+    - Battery status display when device is powered and during session
+    - worked on button implementation for earlobe connectivity
 
+Lucas Colwell
+    - Traceability Matrix (with Owen)
+    - UML Diagram
+    - SoftOff mechanics
+    - Intensity, Session Group and Session Type Select with button
+    - CES Light blinking
+    - drainBattery function and algorithm
+    - earlobe and connection strength
+
+Max Dobrei
+    - Designed and implemented the Session class
+    - Implemented the session history requirement through the saveSession, loadSession, saveSessions and loadSessions functions as well as creating the database file.
+    - Implemented the loadSelections function
+    - Completed the sequence diagrams for the project
 ## File organization of the deliverables.
 
 The diagrams folder contains
@@ -85,4 +98,5 @@ This includes
 - Saving a session
 - Loading a session
 - Creating and running a custom session
-- 
+
+All these cases work, and we did not identify a test
