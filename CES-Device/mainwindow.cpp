@@ -8,7 +8,7 @@
 #include <QSlider>
 #include <unistd.h>
 
-
+//responsible for initiliazing slots, timers and variables, loading sessions,
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
@@ -49,50 +49,54 @@ MainWindow::MainWindow(QWidget *parent)
     curSession = new Session(0,20.0,30,100.0, 1.0);
     //this->connectionStrength = 1; //to model full connection
 
-    Session *toCopy = new Session(curSession);
 
-    qInfo("%s", curSession->getRecord());
-    qInfo("%s", toCopy->getRecord());
+
+    //qInfo("%s", curSession->getRecord());
+    //qInfo("%s", toCopy->getRecord());
   //  qInfo("%s", savedSessions[0]->getRecord());
     //TESTING
 }
 
+
+//loads the currentlu selected session into the curSession variable
 void MainWindow::loadSession(){
-    if (this->powerStatus){
-        delete curSession;
-        this->curSession = new Session(this->savedSessions[ui->sessionStore->currentIndex()]); //might want to use model column
+    if (this->powerStatus){//only load if device is on
+        delete curSession;//clear the current session so new one can be loaded
+        this->curSession = new Session(this->savedSessions[ui->sessionStore->currentIndex()]);
         this->curSession->id = 0;
         setSelections();
     }
 }
 
-void MainWindow::saveSession(){
-    if (this->powerStatus){
 
-        if (inSession)
+//save the curSession into the session list at the approproiate location.
+void MainWindow::saveSession(){
+    if (this->powerStatus){//ensure power is on
+
+        if (inSession)//if a session is running, shouldnt be able to save
         {
             saveInSession = true;
-            this->ui->saveButton->setEnabled(false);
+            this->ui->saveButton->setEnabled(false);//make the button unclickable
         }
-        else
+        else//if not in session, allow saving
         {
-            curSession->id = savedSessions[ui->sessionStore->currentIndex()]->id;
-            qInfo("id for cur session %d \n", curSession->id);
-            qInfo("id for the saved session in the array %d \n", savedSessions[ui->sessionStore->currentIndex()]->id);
-            qInfo("%s \n", curSession->getRecord());
-
-
+            curSession->id = savedSessions[ui->sessionStore->currentIndex()]->id;//set the id to the current row's id
+            //qInfo("id for cur session %d \n", curSession->id);
+            //qInfo("id for the saved session in the array %d \n", savedSessions[ui->sessionStore->currentIndex()]->id);
+            //qInfo("%s \n", curSession->getRecord());
             delete savedSessions[ui->sessionStore->currentIndex()]; //release memory allocated for previous session stored in the array
             savedSessions[ui->sessionStore->currentIndex()] = new Session(curSession);  //use cpy ctor to create a new session
-            qInfo("%s \n", savedSessions[ui->sessionStore->currentIndex()]->getRecord());
+            //qInfo("%s \n", savedSessions[ui->sessionStore->currentIndex()]->getRecord());
         }
     }
 }
 
+//simulates a clock running every second, allows for time to be represented between button press and release
 void MainWindow::increaseTime(){
     timeSinceStart++;
 }
 
+//function to call when powering down, sets booleans and stops timers
 void MainWindow::powerDown(){
     this->midBatteryReached = false;
     this->lowBatteryReached = false;
@@ -107,13 +111,13 @@ void MainWindow::powerDown(){
 }
 
 
-
+//function called when startButton is pressed
 void MainWindow::startButton(){
-    if (this->powerStatus){
-        ui->CESModeLight->setCheckable(true);
-//        this->flashingConnectionTimer->start();
-        this->cesBlinkTimer->start(500);
+    if (this->powerStatus){//only work if device is on
+        ui->CESModeLight->setCheckable(true);//allow the CESModeLight to be checkable, so it can blink
+        this->cesBlinkTimer->start(500);//start the CESModeLight blinker
         //GREAT CONNECTION
+        //set appropriate rows to show current connection strength, start and stop appropriate timers and set load button to unclickable
         if (this->connectionStrength == 1){
             ui->SessionType_2->setCurrentRow(0, QItemSelectionModel::Select);
             ui->SessionType_2->setCurrentRow(1, QItemSelectionModel::Select);
@@ -134,16 +138,16 @@ void MainWindow::startButton(){
             this->ui->loadButton->setEnabled(false);
         }
         //NO CONNECTION
-        else{
+        else{//if no connection, start the timer to blink the bottom rows to indicate no connection.
             this->noConnectBlinkTimer->start(500);
         }
     }
 }
-
+//function to model the blinking of the connectivity graph if there is no earlobe connection.
 void MainWindow::blinkNoConnect(){
     //qDebug()<< this->connectionStrength;
+    //if the connection is lower than 0.66 (means it will be 0.33, only possible value below 0.66
     if (this->connectionStrength < 0.65){
-        //qDebug() << "does this work?";
         if (!isBlinkNoConnect){//if false, select rows
             ui->SessionType_2->setCurrentRow(6, QItemSelectionModel::Select);
             ui->SessionType_2->setCurrentRow(7, QItemSelectionModel::Select);
@@ -152,123 +156,126 @@ void MainWindow::blinkNoConnect(){
             ui->SessionType_2->setCurrentRow(6, QItemSelectionModel::Deselect);
             ui->SessionType_2->setCurrentRow(7, QItemSelectionModel::Deselect);
         }
-        isBlinkNoConnect = !isBlinkNoConnect;
+        isBlinkNoConnect = !isBlinkNoConnect;//reverse the blink variable.
     }
     else{//if the connection strength has been changed
-        //qDebug() << "this doesnt work";
-        this->noConnectBlinkTimer->stop();
+        this->noConnectBlinkTimer->stop();//stop the timer, deselect the rows
         ui->SessionType_2->setCurrentRow(6, QItemSelectionModel::Deselect);
         ui->SessionType_2->setCurrentRow(7, QItemSelectionModel::Deselect);
         this->isBlinkNoConnect = false;
     }
 }
 
-
+//function to blink the CESModeLight radio button 8 times.
 void MainWindow::blinkCESMode(){
-    if (this->numBlinks < 8){
-        ui->CESModeLight->setChecked(!ui->CESModeLight->isChecked());
+    if (this->numBlinks < 8){//if the function has not yet been called 8 times
+        ui->CESModeLight->setChecked(!ui->CESModeLight->isChecked());//set to opposite of whatever state it is in (simulates blinking)
         this->numBlinks++;
-    }else{
-        this->cesBlinkTimer->stop();
-        this->numBlinks = 0;
-        ui->CESModeLight->setCheckable(false);
+    }else{//total number of blinks achieved (8)
+        this->cesBlinkTimer->stop();//stop the timer
+        this->numBlinks = 0;//reset for later use
+        ui->CESModeLight->setCheckable(false);//dont allow the CESModeLight to be selected by user
     }
 }
 
+//a function to remove the button simulating earlobe attachment level when selected
 void MainWindow::connectivityHighlight(int index){
-    if (index == 0) {
+    if (index == 0) {//strong was clicked
          ui->earButtonStrong->setVisible(false);
          ui->earButtonWeak->setVisible(true);
          ui->detachEars->setVisible(true);
     }
-    else if (index == 1){
+    else if (index == 1){//medium was clicked
          ui->earButtonStrong->setVisible(true);
          ui->earButtonWeak->setVisible(false);
          ui->detachEars->setVisible(true);
     }
-    else {
+    else {//detach was clicked.
         ui->earButtonStrong->setVisible(true);
         ui->earButtonWeak->setVisible(true);
         ui->detachEars->setVisible(false);
 
     }
-
 }
 
+
+//function to run if the strong attachment was clicked
 void MainWindow::earlobeStrongButton(){
-    if (this->powerStatus){
-        this->connectionStrength = 1;
-        for (int i = 0; i< 8; i++){
+    if (this->powerStatus){//only work if device is on
+        this->connectionStrength = 1;//set the connection strength
+        for (int i = 0; i< 8; i++){//deselected any other selected rows so display is clear
             ui->SessionType_2->setCurrentRow(i, QItemSelectionModel::Deselect);
-        }
+        }//select the appropriate rows
         ui->SessionType_2->setCurrentRow(0, QItemSelectionModel::Select);
         ui->SessionType_2->setCurrentRow(1, QItemSelectionModel::Select);
         ui->SessionType_2->setCurrentRow(2, QItemSelectionModel::Select);
-        qDebug() << "StrongConnection Pressed";
-        connectivityHighlight(0);
+
+        connectivityHighlight(0);//call the function to hide the button
     }
 
 }
 
+//function to run if the weak attachment was clicked
 void MainWindow::earlobeWeakButton(){
-    if (this->powerStatus){
-        this->connectionStrength = 0.66;
-        for (int i = 0; i< 8; i++){
+    if (this->powerStatus){//only work if the device is on
+        this->connectionStrength = 0.66;//set the connection strength
+        for (int i = 0; i< 8; i++){//deselected any other selected rows so display is clear
             ui->SessionType_2->setCurrentRow(i, QItemSelectionModel::Deselect);
-        }
+        }//select the appropriate rows
         ui->SessionType_2->setCurrentRow(3, QItemSelectionModel::Select);
         ui->SessionType_2->setCurrentRow(4, QItemSelectionModel::Select);
         ui->SessionType_2->setCurrentRow(5, QItemSelectionModel::Select);
-        connectivityHighlight(1);
+        connectivityHighlight(1);//call the function to hide the button
     }
 }
 
+//function to run if the detach was clicked
 void MainWindow::earlobeDetachButton(){
-    if (this->powerStatus){
-        this->connectionStrength = 0.33;
-        for (int i = 0; i< 8; i++){
+    if (this->powerStatus){//only work if the device is on
+        this->connectionStrength = 0.33;//connection strength set
+        for (int i = 0; i< 8; i++){//deselected any other selected rows so display is clear
             ui->SessionType_2->setCurrentRow(i, QItemSelectionModel::Deselect);
-        }
-
+        }//select the appropriate rows
         ui->SessionType_2->setCurrentRow(6, QItemSelectionModel::Select);
         ui->SessionType_2->setCurrentRow(7, QItemSelectionModel::Select);
-        connectivityHighlight(2);
-        this->inSession=false;
-        this->sessionTimer->stop();
+        connectivityHighlight(2);//call the function to hide the button
+        this->inSession=false;//stop a session if in progress
+        this->sessionTimer->stop();//stop the sessionTimer
     }
 }
 
+//function to update the custom time value based on the position of the QSlider (0-60)
 void MainWindow::updateCustomTime(){
-    this->curCustomTime = ui->UserDesSlider->sliderPosition();
-    ui->timeLabel->setText(QString::number(this->curCustomTime));
-    if (ui->SessionGroup->currentRow() == 2)
-        curSession->setSG((float)ui->UserDesSlider->sliderPosition());
+    this->curCustomTime = ui->UserDesSlider->sliderPosition();//set the time equal to the position of the QSlider
+    ui->timeLabel->setText(QString::number(this->curCustomTime));//display the value of the QSlider in the QLabel
+    if (ui->SessionGroup->currentRow() == 2)//if the current selected row is 2, meaning the custom time is selected
+        curSession->setSG((float)ui->UserDesSlider->sliderPosition());//set the curSession time to be equal to the sliderPOsition
 
-    qDebug() << this->curCustomTime;
+    //qDebug() << this->curCustomTime;
     if (this->sessionGroupRow == 2){//custom time is selected
         this->curSession->setSG(this->curCustomTime);
     }
 }
-
+//function to flash the battery level when called
 void MainWindow::batteryCheck(){
     //this->flashingConnectionTimer->start();
     if (this->batteryLevel < 33){
-        qDebug()<< "Battery Level less than 33";
+        //qDebug()<< "Battery Level less than 33";
         this->batteryStatus = 0;
     }
     else if(this->batteryLevel < 34 && this->batteryLevel > 32 && !this->lowBatteryReached){
         this->batteryStatus = 1;
-        qDebug()<< "Battery Level at 33";
+        //qDebug()<< "Battery Level at 33";
         this->lowBatteryReached = true;
     }
     else if(this->batteryLevel <= 66 && !this->midBatteryReached){
-        qDebug()<< "Battery Level at 66";
+        //qDebug()<< "Battery Level at 66";
         this->batteryStatus = 2;
         this->midBatteryReached = true;
 
     }
     else if(this->batteryLevel == 100 && !flashedHundo){
-        qDebug()<< "Battery Level at 100";
+        //qDebug()<< "Battery Level at 100";
         flashedHundo = true;
         this->batteryStatus = 3;
     }
@@ -278,14 +285,14 @@ void MainWindow::batteryCheck(){
 
 }
 
-//function to be called for battery drainage (should be timed)
+//function to be called for battery drainage
 void MainWindow::drainBattery(){
-    //battery drains: Hz/100 *connection (3 possible values (0.33, 0.66,1)) * lengthOfSession/60
+    //battery drains: Hz/100 *(connection (3 possible values (0.33, 0.66,1))+ intensity/10) * lengthOfSession/60
+    //uncomment if you want to see the math
     //qDebug() << "Session Hertz: " << curSession->getHertz() << ". Connection strength: " << this->connectionStrength <<". Current Intensity: "<< this->curSession->getIntensity() << ". Length of Session: " << this->curSession->getSG();
     //qDebug() << "First piece of math /100 = " << (curSession->getHertz()/100) << ". Second piece of math /60: " <<(this->curSession->getSG()/60) << "third piece of math: "<< (this->connectionStrength +(this->curSession->getIntensity()/10));
 
     float amountToReduceBattery= ((curSession->getHertz()/100) * (this->connectionStrength +(this->curSession->getIntensity()/10)) * (this->curSession->getSG()/60));
-    //qDebug() << amountToReduceBattery;
     if (inSession && powerStatus){//if we are in a session AND the power is on
         this->batteryLevel -= amountToReduceBattery;
         ui->batteryLabel_2->setText(QString::number(this->batteryLevel));
@@ -293,19 +300,21 @@ void MainWindow::drainBattery(){
             this->powerStatus = false;
             ui->powerLabel->setText("POWER: OFF");
             this->flashingConnectionTimer->stop();
+            this->sessionTimer->stop();
             this->inSession = false;
             this->noSessionTimer->stop();
-            ui->batteryLabel_2->setText("0");
+            ui->batteryLabel_2->setText("0");//show that battery is now 0
         }
     }
     //this->flashingConnectionTimer->stop();
 }
 
+//function to flash the connection view for the battery level
 void MainWindow::flashConnections(){
-    batteryCheck();
+    batteryCheck();//call the batteryCheck function to get status
     if (batteryStatus!=-1 && !needToDeselect){
-        this->needToDeselect = true;
-        switch(this->batteryStatus){
+        this->needToDeselect = true;//set to show we need to deselect other rows
+        switch(this->batteryStatus){//select and deselect appropriate rows to show battery level
             case 0:
                 ui->SessionType_2->setCurrentRow(0, QItemSelectionModel::Deselect);
                 ui->SessionType_2->setCurrentRow(1, QItemSelectionModel::Deselect);
@@ -347,7 +356,7 @@ void MainWindow::flashConnections(){
                 ui->SessionType_2->setCurrentRow(7, QItemSelectionModel::Select);
             break;
         }
-    }
+    }//if we need to deselect to show flash, just deselect all
     else if (this->needToDeselect || this->batteryStatus == 0 || this->batteryStatus == 1){
 
         ui->SessionType_2->setCurrentRow(0, QItemSelectionModel::Deselect);
@@ -381,41 +390,39 @@ void MainWindow::softOffFromButton(){
         }
         //ensure booleans are nice again
         this->softOffRow = 0;
-        ui->powerLabel->setText("POWER: OFF");
+        //ui->powerLabel->setText("POWER: OFF");
 }
-
+//function called from the timer, will scroll from 8-1
 void MainWindow::softOffTimed(){
-    if (this->softOffRow <=8){
+    if (this->softOffRow <=8){//if havent scrolled all rows yet
        ui->SessionType_2->setCurrentRow(this->softOffRow,QItemSelectionModel::Deselect);
        this->softOffRow++;
        ui->SessionType_2->setCurrentRow(this->softOffRow, QItemSelectionModel::Select);
        //qDebug() << "The row is: " << this->softOffRow;
-    }else{
+    }else{//if all rows have been scrolled
         this->softOffTimer->stop();
         this->inSession = false;
-        if (saveInSession)
+        if (saveInSession)//save if need be
         {
             this->saveInSession = false;
             saveSession();
             this->ui->saveButton->setEnabled(true);
         }
-        this->powerDown();
+        this->powerDown();//call power down
     }
 }
-
+//when power button is pressed, gets current time it was pressed, for later comparison against realse
 void MainWindow::power_pressed(){
     mLastPressTime = timeSinceStart;
 }
 
 void MainWindow::power_released(){
-    qDebug() << "in power_released()";
-    qDebug() << mLastPressTime;
     if (timeSinceStart - mLastPressTime >= 1){
-        qDebug() << "Power was held";
+        //qDebug() << "Power was held";
         // It was held, so this is a power on or a power off
 
         if (this->powerStatus == false){//if trying to turn on
-            if (this->batteryLevel >0){
+            if (this->batteryLevel >0){//ensure enough charger
                 ui->powerLabel->setText("POWER: ON");
                 this->flashingConnectionTimer->start(1000);
                 // batteryTimer->start(1000); //starts the battery drain THIS SHOULD PROBABLY ONLY DRAIN WITH SESSION
@@ -430,23 +437,20 @@ void MainWindow::power_released(){
             this->powerDown();
         }
     }else{
-        qDebug() << "Power was clicked";
-
-        // Button was clicked, not held
-
+        // Button was clicked, not held@
         // Are we in a session already?
         if (this->inSession == true){
             softOffFromButton();
             //qDebug() << "Called softOffFromButton, we were already in a session";
-        }else{
+        }else{//if not in a session, means we want to switch session group
             // Time to select a session this->sessionGroupRow
-            if (this->powerStatus){
+            if (this->powerStatus){//ensure device is on
                 this->sessionGroupRow= this->sessionGroupRow % 3;
                 ui->SessionGroup->setCurrentRow(this->sessionGroupRow,QItemSelectionModel::Deselect);
                 this->sessionGroupRow++;
                 this->sessionGroupRow= this->sessionGroupRow % 3;
                 ui->SessionGroup->setCurrentRow(this->sessionGroupRow,QItemSelectionModel::Select);
-                switch(this->sessionGroupRow)
+                switch(this->sessionGroupRow)//set the time based on
                 {
                     case 0: this->curSession->setSG(TWENTY_MIN);
                     break;
@@ -460,14 +464,14 @@ void MainWindow::power_released(){
     }
 }
 
-
+//function to model the up button pressed
 void MainWindow::upButtonPressed(){
-    if(powerStatus){
-        if (inSession){//adjust the intensity
-            if (this->intensityRow > 0){
-                for (int i = 0; i< 8; i++){
+    if(powerStatus){//ensure power on
+        if (inSession){//adjust the intensity if in session
+            if (this->intensityRow > 0){//make sure is valid range
+                for (int i = 0; i< 8; i++){//deselect all rows
                     ui->SessionType_2->setCurrentRow(i,QItemSelectionModel::Deselect);
-                }
+                }//cycle up through the intensity, shown on the connectivity graph
                 ui->SessionType_2->setCurrentRow(this->intensityRow,QItemSelectionModel::Deselect);
                 this->intensityRow--;
                 ui->SessionType_2->setCurrentRow(this->intensityRow,QItemSelectionModel::Select);
@@ -475,12 +479,13 @@ void MainWindow::upButtonPressed(){
 
             }
         }
-        else{
-            if (sessionTypeRow > 0){//selecting session type
+        else{//selecting session type. not in session
+            if (sessionTypeRow > 0){//make sure is valid range
+                //cycle up through sessionType
                 ui->SessionType->setCurrentRow(sessionTypeRow,QItemSelectionModel::Deselect);
                 sessionTypeRow--;
                 ui->SessionType->setCurrentRow(sessionTypeRow,QItemSelectionModel::Select);
-                switch(this->sessionTypeRow){
+                switch(this->sessionTypeRow){//set the current session hertz and type equal to the selected row
                     case 0: this->curSession->setST(DELTA); this->curSession->setHertz(DELTA_HZ);
                     break;
                     case 1: this->curSession->setST(THETA); this->curSession->setHertz(THETA_HZ);
@@ -493,26 +498,26 @@ void MainWindow::upButtonPressed(){
         }
     }
 }
-
+//function to model the down button pressed
 void MainWindow::downButtonPressed(){
-    if(powerStatus){
-        if (inSession){//adjust the intensity
-            if (this->intensityRow < 7){
+    if(powerStatus){//ensure power on
+        if (inSession){//adjust the intensity if in session
+            if (this->intensityRow < 7){//ensure valid range
                 for (int i = 0; i< 8; i++){
                     ui->SessionType_2->setCurrentRow(i,QItemSelectionModel::Deselect);
-                }
+                }//cycle down through the intensity, shown on the connectivity graph
                 ui->SessionType_2->setCurrentRow(this->intensityRow,QItemSelectionModel::Deselect);
                 this->intensityRow++;
                 ui->SessionType_2->setCurrentRow(this->intensityRow,QItemSelectionModel::Select);
                 this->curSession->setIntensity(8-this->intensityRow);
             }
         }
-        else{//iterate through session types
-            if (sessionTypeRow < 3){
+        else{//selecting session type. not in session
+            if (sessionTypeRow < 3){//ensure valid range
                 ui->SessionType->setCurrentRow(sessionTypeRow,QItemSelectionModel::Deselect);
                 sessionTypeRow++;
                 ui->SessionType->setCurrentRow(sessionTypeRow,QItemSelectionModel::Select);
-                switch(this->sessionTypeRow){
+                switch(this->sessionTypeRow){//set the current session hertz and type equal to the selected row
                     case 0: this->curSession->setST(DELTA); this->curSession->setHertz(DELTA_HZ);
                     break;
                     case 1: this->curSession->setST(THETA); this->curSession->setHertz(THETA_HZ);
@@ -526,13 +531,14 @@ void MainWindow::downButtonPressed(){
     }
 }
 
+//function to show the selections of the session
 void MainWindow::setSelections()
-{
+{//deselect the current selected rows
     ui->SessionGroup->setCurrentRow(ui->SessionGroup->currentRow(), QItemSelectionModel::Deselect);
     ui->SessionType->setCurrentRow(ui->SessionType->currentRow(), QItemSelectionModel::Deselect);
     ui->SessionType_2->setCurrentRow(ui->SessionType_2->currentRow(), QItemSelectionModel::Deselect);
-    if (powerStatus)
-    {
+    if (powerStatus)//ensure power is on
+    {//set the appropriate rows to selected based on curSession values for the session group display
         if (curSession->getSG() < TWENTY_MIN + 1.0 && curSession->getSG() > TWENTY_MIN - 1.0)
         {
             ui->SessionGroup->setCurrentRow(0, QItemSelectionModel::Select);
@@ -552,7 +558,7 @@ void MainWindow::setSelections()
             ui->timeLabel->setText(QString::number(curSession->getSG()));
         }
 
-
+        //set the appropriate rows to selected based on curSession values for the session type display
         switch (this->curSession->getST())
         {
             case DELTA:       ui->SessionType->setCurrentRow(0, QItemSelectionModel::Select); sessionTypeRow = 0;
@@ -564,7 +570,7 @@ void MainWindow::setSelections()
             case ONE_HUNDRED: ui->SessionType->setCurrentRow(3, QItemSelectionModel::Select); sessionTypeRow = 3;
             break;
         }
-
+        //set the appropriate rows to selected based on curSession values for the session intensity
         if (curSession->getIntensity() < 1.1 && curSession->getSG() > 0.9)
         {
             ui->SessionType_2->setCurrentRow(7, QItemSelectionModel::Select);
@@ -608,9 +614,9 @@ void MainWindow::setSelections()
     }
 }
 
+//function to load the sessions from the db file, allows for saving sessions between operation.
 void MainWindow::loadSessions()
 {
-
     //open the db file for reading
     FILE *file;
     file = fopen(path, "r");
@@ -628,18 +634,18 @@ void MainWindow::loadSessions()
         fclose(file);
     }
     else
-    {
+    {//load every line of the session into saved sessions
         for (int i = 0; i < MAX_SESSIONS; i++)
         {
             char* temp = (char*) malloc(200);
 
-            if (fgets(temp, 200, file) != NULL)
+            if (fgets(temp, 200, file) != NULL)//not at end of file
             {
                 int id, st;
                 float Hertz, sg, intensity;
-
+                //scan the current line values
                 sscanf(temp, "%d %f %d %f %f", &id, &sg, &st, &Hertz, &intensity);
-
+                //load the line into the session pointer array
                 savedSessions[i] = new Session(id, sg, st, Hertz, intensity);
                 delete temp;
                 continue;
@@ -651,14 +657,13 @@ void MainWindow::loadSessions()
         fclose(file);
     }
 }
-
+//function to save the sessions to the db file
 void MainWindow::saveSessions()
 {
     FILE *file;
     file = fopen(path, "w");
     //clear contents of db file
-
-    for (int i = 0; i < MAX_SESSIONS; i++)
+    for (int i = 0; i < MAX_SESSIONS; i++)//for every session in savedSessions
     {
         //write the session from array to file
 
@@ -668,9 +673,10 @@ void MainWindow::saveSessions()
     fclose(file);
 
 }
-
+//function to initiate the slots needed for the ui and timer signals to connect properly with their slots.
 void MainWindow::initSlots()
 {
+    //ui
     connect(ui->loadButton, SIGNAL(released()) , this, SLOT (loadSession()));
     connect(ui->saveButton, SIGNAL(released()) , this, SLOT (saveSession()));
 
@@ -690,6 +696,7 @@ void MainWindow::initSlots()
     connect(ui->downButton, SIGNAL (released()) , this, SLOT (downButtonPressed()));
     connect(ui->upButton, SIGNAL (released()) , this, SLOT (upButtonPressed()));
 
+    //timers
     connect(incTimer, SIGNAL (timeout()), this, SLOT (increaseTime()));
     connect(batteryTimer, SIGNAL (timeout()),this, SLOT (drainBattery()));
     connect(softOffTimer, SIGNAL (timeout()),this, SLOT (softOffTimed()));
@@ -703,7 +710,7 @@ void MainWindow::initSlots()
 }
 
 
-
+//destructor class
 MainWindow::~MainWindow()
 {
     //write current sessions stored in array into the DB file
